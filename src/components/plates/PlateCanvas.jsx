@@ -42,19 +42,14 @@ function hatch(ctx, x, y, w, h) {
   ctx.strokeStyle = "#ccc";
   ctx.lineWidth = 1;
   ctx.beginPath();
-
-  // Draw horizontal lines
   for (let i = 0; i < h; i += 5) {
     ctx.moveTo(x, y + i);
     ctx.lineTo(x + w, y + i);
   }
-
-  // Draw vertical lines
   for (let i = 0; i < w; i += 5) {
     ctx.moveTo(x + i, y);
     ctx.lineTo(x + i, y + h);
   }
-
   ctx.stroke();
   ctx.restore();
 }
@@ -70,7 +65,6 @@ export default function PlateCanvas({
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
 
-  // Track resized plates and direction
   const [resizedPlates, setResizedPlates] = useState([]);
   const prevPlatesRef = useRef([]);
 
@@ -92,7 +86,6 @@ export default function PlateCanvas({
   useEffect(() => {
     const prev = prevPlatesRef.current;
     const changes = [];
-
     plates.forEach((p) => {
       const prevP = prev.find((x) => x.id === p.id);
       if (prevP && (prevP.w !== p.w || prevP.h !== p.h)) {
@@ -100,12 +93,10 @@ export default function PlateCanvas({
         changes.push({ id: p.id, type: bigger ? "grow" : "shrink" });
       }
     });
-
     if (changes.length > 0) {
       setResizedPlates(changes);
       setTimeout(() => setResizedPlates([]), 600);
     }
-
     prevPlatesRef.current = plates.map((p) => ({ ...p }));
   }, [plates]);
 
@@ -119,7 +110,7 @@ export default function PlateCanvas({
     const cmH = Math.max(1, maxHeight);
     const pad = 24;
 
-    // Set scale to 1 (1cm = 1px)
+    // 1 cm == 1 px (scroll if too wide)
     const scale = 1;
 
     const pxW = Math.max(1, Math.round(cmW * scale));
@@ -128,10 +119,17 @@ export default function PlateCanvas({
     canvas.width = pxW + pad * 2;
     canvas.height = pxH + pad * 2;
 
+    // ensure we start scrolled to the leftmost edge
+
+    const fits = canvas.width <= wrap.clientWidth;
+    wrap.style.justifyContent = fits ? "center" : "flex-start";
+    wrap.style.overflowX = fits ? "hidden" : "auto";
+    if (!fits) wrap.scrollLeft = 0; // ensure left edge visible
+
+    wrap.scrollLeft = 0;
+
     let start = null;
     const duration = 500;
-    let animationFrame;
-
     function drawFrame(timestamp) {
       if (!start) start = timestamp;
       const progress = Math.min(1, (timestamp - start) / duration);
@@ -189,27 +187,22 @@ export default function PlateCanvas({
         let drawW = w - gap;
         let drawH = h;
 
-        // ADD animation
         if (p.id === recentlyAdded) {
           alpha = progress;
           drawW *= progress;
           drawH *= progress;
-        }
-        // REMOVE animation
-        else if (p.id === recentlyRemoved) {
+        } else if (p.id === recentlyRemoved) {
           alpha = 1 - progress;
           drawW *= 1 - 0.2 * progress;
           drawH *= 1 - 0.2 * progress;
-        }
-        // RESIZE animation
-        else {
+        } else {
           const resize = resizedPlates.find((r) => r.id === p.id);
           if (resize) {
             if (resize.type === "grow") {
-              drawW *= 0.8 + 0.2 * progress; // expand into place
+              drawW *= 0.8 + 0.2 * progress;
               drawH *= 0.8 + 0.2 * progress;
             } else {
-              drawW *= 1.2 - 0.2 * progress; // shrink into place
+              drawW *= 1.2 - 0.2 * progress;
               drawH *= 1.2 - 0.2 * progress;
             }
           }
@@ -217,7 +210,6 @@ export default function PlateCanvas({
 
         ctx.save();
         ctx.globalAlpha = alpha;
-
         ctx.beginPath();
         ctx.rect(x, y + (h - drawH), drawW, drawH); // bottom-aligned
         ctx.clip();
@@ -264,12 +256,12 @@ export default function PlateCanvas({
       });
 
       if (progress < 1) {
-        animationFrame = requestAnimationFrame(drawFrame);
+        requestAnimationFrame(drawFrame);
       }
     }
 
-    animationFrame = requestAnimationFrame(drawFrame);
-    return () => cancelAnimationFrame(animationFrame);
+    const raf = requestAnimationFrame(drawFrame);
+    return () => cancelAnimationFrame(raf);
   }, [
     plates,
     img,
@@ -284,11 +276,12 @@ export default function PlateCanvas({
   return (
     <div
       ref={wrapRef}
-      className="relative w-full h-[320px] sm:h-[420px] md:h-[520px] 
-             rounded-xl bg-slate-50 border border-slate-200 overflow-auto 
-             flex items-center justify-center"
+      className="relative w-full h-[320px] sm:h-[420px] md:h-[520px]
+             rounded-xl bg-slate-50 border border-slate-200
+             overflow-x-auto overflow-y-hidden
+             flex items-center justify-start"
     >
-      <canvas ref={canvasRef} className="block " />
+      <canvas ref={canvasRef} className="block" />
     </div>
   );
 }
