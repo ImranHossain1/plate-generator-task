@@ -51,17 +51,6 @@ export default function HomePage() {
         : { ...s, plates: s.plates.filter((p) => p.id !== id) }
     );
 
-  const movePlate = (id, dir) =>
-    setCfg((s) => {
-      const i = s.plates.findIndex((p) => p.id === id);
-      const j = i + (dir === "left" ? -1 : 1);
-      if (i < 0 || j < 0 || j >= s.plates.length) return s;
-      const arr = [...s.plates];
-      const [it] = arr.splice(i, 1);
-      arr.splice(j, 0, it);
-      return { ...s, plates: arr };
-    });
-
   let exportCanvasEl = null;
   const handleCanvasRef = (c) => (exportCanvasEl = c);
   const exportPNG = () => {
@@ -149,7 +138,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-2 space-y-2">
+          <div className="mt-3 space-y-5">
             {plates.map((p, i) => (
               <PlateRow
                 key={p.id}
@@ -159,33 +148,33 @@ export default function HomePage() {
                 onSelect={() => setActiveId(p.id)}
                 onChange={(patch) => updatePlate(p.id, patch)}
                 onRemove={() => removePlate(p.id)}
-                onAddAfter={() => addPlate(p.id)}
                 canRemove={plates.length > 1}
-                canMoveLeft={i > 0}
-                canMoveRight={i < plates.length - 1}
-                onMoveLeft={() => movePlate(p.id, "left")}
-                onMoveRight={() => movePlate(p.id, "right")}
               />
             ))}
           </div>
 
-          <div className="mt-3 flex justify-end gap-2">
+          <div className="mt-5 flex flex-col gap-2 w-full md:flex-row md:justify-end">
             <Button
               onClick={() => addPlate()}
               disabled={plates.length >= PLATE_LIMITS.MAX_PLATES}
               variant="success"
+              className="w-full md:w-auto"
             >
               Rückwand hinzufügen{" "}
               <span aria-hidden className="text-base leading-none">
                 +
               </span>
             </Button>
-            <Button variant="danger" onClick={resetToDefaults}>
+
+            <Button
+              variant="danger"
+              onClick={resetToDefaults}
+              className="w-full mt-2 md:mt-0 md:w-auto"
+            >
               Zurücksetzen
             </Button>
           </div>
-
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-slate-500 text-center md:text-left">
             Limits: width {PLATE_LIMITS.MIN_W}–{PLATE_LIMITS.MAX_W} cm, height{" "}
             {PLATE_LIMITS.MIN_H}–{PLATE_LIMITS.MAX_H} cm, up to{" "}
             {PLATE_LIMITS.MAX_PLATES} plates.
