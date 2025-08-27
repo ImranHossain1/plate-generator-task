@@ -3,7 +3,7 @@ export default function TextField({
   value,
   onChange,
   placeholder,
-  rightAddon, // e.g., "cm"
+  rightAddon,
   inputMode = "text",
   type = "text",
   className = "",
