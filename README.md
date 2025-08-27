@@ -1,8 +1,10 @@
 # Plate Generator
 
-A React app to design kitchen backsplash plates: enter plate dimensions in **cm/inch**, preview a **continuous motif** spanning all plates, and export a **PNG**. Supports **English/German** (react-intl) and **Light/Dark/System** themes.
+A React app to design a plate generator system for configuring and visualizing custom wall plates: enter plate dimensions in **cm/inch**, preview a **continuous motif** spanning all plates, and export a **PNG**. Supports **English/German** (react-intl).
 
 ![Preview](./docs/images/preview.png)
+![Mirroring](./docs/images/mirroring.png)
+![Mobile Scroll](./docs/images/mobile-scroll.png)
 
 > Tip: The preview supports **horizontal scroll** for wide layouts and **mirrors** the image for layouts wider than 300 cm to keep a seamless look.
 
@@ -14,7 +16,6 @@ A React app to design kitchen backsplash plates: enter plate dimensions in **cm/
 - **Continuous motif** across plates (`cover`/`contain`), optional tiling
 - **Unit toggle**: centimeters ⇄ inches (with validation & locale formatting)
 - **i18n**: English & German via **react-intl**
-- **Theme**: Light/Dark/System via Tailwind `dark` class
 - **PNG export** of the preview canvas
 - **Persistent config** (localStorage) with reset to defaults
 - **Mobile-first**: horizontal scroll on overflow; no layout squish
@@ -24,7 +25,7 @@ A React app to design kitchen backsplash plates: enter plate dimensions in **cm/
 
 ## 🧱 Tech Stack
 
-- **React 18**, **React Router**
+- **React 19**, **React Router**
 - **Tailwind CSS** (dark mode via `class`)
 - **react-intl** (FormatJS) for messages & number formatting
 - **Canvas 2D** rendering (with clipping & robust source clamping)
@@ -44,7 +45,7 @@ A React app to design kitchen backsplash plates: enter plate dimensions in **cm/
 ```bash
 # clone your repo
 git clone git@github.com:ImranHossain1/plate-generator-task.git
-cd plate-generator
+cd plate-generator-task
 
 # install deps
 npm install
