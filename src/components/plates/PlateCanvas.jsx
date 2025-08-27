@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { hatch } from "../../utils/canvas.js";
 
 function drawImageClamped(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
   const EPS = 0.01;
@@ -35,6 +34,29 @@ function drawImageClamped(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
     adjDw,
     adjDh
   );
+}
+
+// Simple hatch pattern function
+function hatch(ctx, x, y, w, h) {
+  ctx.save();
+  ctx.strokeStyle = "#ccc";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+
+  // Draw horizontal lines
+  for (let i = 0; i < h; i += 5) {
+    ctx.moveTo(x, y + i);
+    ctx.lineTo(x + w, y + i);
+  }
+
+  // Draw vertical lines
+  for (let i = 0; i < w; i += 5) {
+    ctx.moveTo(x + i, y);
+    ctx.lineTo(x + i, y + h);
+  }
+
+  ctx.stroke();
+  ctx.restore();
 }
 
 export default function PlateCanvas({
@@ -96,9 +118,10 @@ export default function PlateCanvas({
     const cmW = Math.max(1, totalWidth);
     const cmH = Math.max(1, maxHeight);
     const pad = 24;
-    const availW = Math.max(10, wrap.clientWidth - pad * 2);
-    const availH = Math.max(10, wrap.clientHeight - pad * 2);
-    const scale = Math.max(0.1, Math.min(availW / cmW, availH / cmH));
+
+    // Set scale to 1 (1cm = 1px)
+    const scale = 1;
+
     const pxW = Math.max(1, Math.round(cmW * scale));
     const pxH = Math.max(1, Math.round(cmH * scale));
 
@@ -262,7 +285,7 @@ export default function PlateCanvas({
     <div
       ref={wrapRef}
       className="relative w-full h-[320px] sm:h-[420px] md:h-[520px] 
-             rounded-xl bg-slate-50 border border-slate-200 overflow-hidden 
+             rounded-xl bg-slate-50 border border-slate-200 overflow-auto 
              flex items-center justify-center"
     >
       <canvas ref={canvasRef} className="block " />
