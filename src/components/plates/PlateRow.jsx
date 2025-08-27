@@ -12,47 +12,57 @@ export default function PlateRow({
   onChange,
   onRemove,
   canRemove,
+  unit,
 }) {
-  const [wDraft, setWDraft] = useState(String(plate.w));
-  const [hDraft, setHDraft] = useState(String(plate.h));
+  const cmToUnit = (cm) =>
+    unit === "cm" ? cm : Math.ceil((cm / 2.54) * 100) / 100;
+  const unitToCm = (val) => (unit === "cm" ? val : val * 2.54);
+
+  const [wDraft, setWDraft] = useState(String(cmToUnit(plate.w)));
+  const [hDraft, setHDraft] = useState(String(cmToUnit(plate.h)));
   const [wError, setWError] = useState("");
   const [hError, setHError] = useState("");
 
   // keep drafts in sync if plate changes externally
-  useEffect(() => setWDraft(String(plate.w)), [plate.w]);
-  useEffect(() => setHDraft(String(plate.h)), [plate.h]);
+  useEffect(() => setWDraft(String(cmToUnit(plate.w))), [plate.w, unit]);
+  useEffect(() => setHDraft(String(cmToUnit(plate.h))), [plate.h, unit]);
 
   const validate = (val, min, max) => {
     const num = parseLocaleNumber(val);
     if (Number.isNaN(num)) return { ok: false, err: "Not a number" };
-    if (num < min || num > max) {
-      return { ok: false, err: `Must be between ${min}–${max} cm` };
+    // always compare in cm
+    const numCm = unitToCm(num);
+    if (numCm < min || numCm > max) {
+      return {
+        ok: false,
+        err: `Must be between ${cmToUnit(min)}–${cmToUnit(max - 0.01)} ${unit}`,
+      };
     }
-    return { ok: true, num };
+    return { ok: true, numCm };
   };
 
   const handleBlurW = () => {
     const res = validate(wDraft, PLATE_LIMITS.MIN_W, PLATE_LIMITS.MAX_W);
     if (!res.ok) {
       setWError(res.err);
-      setWDraft(String(plate.w)); // revert to last good
+      setWDraft(String(cmToUnit(plate.w))); // revert
       return;
     }
     setWError("");
-    if (res.num !== plate.w) onChange({ w: res.num });
-    setWDraft(String(res.num));
+    if (res.numCm !== plate.w) onChange({ w: res.numCm });
+    setWDraft(String(cmToUnit(res.numCm)));
   };
 
   const handleBlurH = () => {
     const res = validate(hDraft, PLATE_LIMITS.MIN_H, PLATE_LIMITS.MAX_H);
     if (!res.ok) {
       setHError(res.err);
-      setHDraft(String(plate.h)); // revert to last good
+      setHDraft(String(cmToUnit(plate.h)));
       return;
     }
     setHError("");
-    if (res.num !== plate.h) onChange({ h: res.num });
-    setHDraft(String(res.num));
+    if (res.numCm !== plate.h) onChange({ h: res.numCm });
+    setHDraft(String(cmToUnit(res.numCm)));
   };
 
   return (
@@ -113,6 +123,7 @@ export default function PlateRow({
             onChange={(e) => setWDraft(e.target.value)}
             onBlur={handleBlurW}
             isActive={isActive}
+            unit={unit}
           />
           <PlateField
             label="Höhe"
@@ -123,9 +134,9 @@ export default function PlateRow({
             onChange={(e) => setHDraft(e.target.value)}
             onBlur={handleBlurH}
             isActive={isActive}
+            unit={unit}
           />
         </div>
-
         {/* Desktop remove button (hidden on mobile) */}
         <div className="hidden md:flex items-center gap-1 self-center">
           <Button

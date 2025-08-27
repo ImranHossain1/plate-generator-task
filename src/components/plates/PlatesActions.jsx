@@ -1,7 +1,14 @@
 import Button from "../ui/Button.jsx";
 import { PLATE_LIMITS } from "../../constants/plates.js";
 
-export default function PlatesActions({ plates, addPlate, resetToDefaults }) {
+export default function PlatesActions({
+  plates,
+  addPlate,
+  resetToDefaults,
+  unit,
+  totalWidth,
+  maxHeight,
+}) {
   return (
     <>
       <div className="mt-5 flex flex-col gap-2 w-full md:flex-row md:justify-end">
@@ -25,11 +32,19 @@ export default function PlatesActions({ plates, addPlate, resetToDefaults }) {
         </Button>
       </div>
 
-      <p className="mt-2 text-xs text-slate-500 text-center md:text-left">
-        Limits: width {PLATE_LIMITS.MIN_W}–{PLATE_LIMITS.MAX_W} cm, height{" "}
-        {PLATE_LIMITS.MIN_H}–{PLATE_LIMITS.MAX_H} cm, up to{" "}
-        {PLATE_LIMITS.MAX_PLATES} plates.
-      </p>
+      <div className="mt-2 text-xs text-slate-500 text-center md:text-left">
+        Total width:{" "}
+        <b>
+          {unit === "cm"
+            ? totalWidth.toFixed(2)
+            : (totalWidth / 2.54).toFixed(2)}
+        </b>{" "}
+        {unit} · Max height:{" "}
+        <b>
+          {unit === "cm" ? maxHeight.toFixed(2) : (maxHeight / 2.54).toFixed(2)}
+        </b>{" "}
+        {unit}
+      </div>
     </>
   );
 }

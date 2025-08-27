@@ -22,6 +22,8 @@ export default function HomePage() {
   const [recentlyAdded, setRecentlyAdded] = useState(null);
   const [activeId, setActiveId] = useState(plates[0]?.id || null);
 
+  const [unit, setUnit] = useState("cm"); // "cm" | "inch"
+
   useEffect(() => {
     if (!plates.find((p) => p.id === activeId)) {
       setActiveId(plates[0]?.id ?? null);
@@ -55,20 +57,24 @@ export default function HomePage() {
         recentlyAdded={recentlyAdded}
         exportPNG={exportPNG}
       />
-      <ConfigCard
-        plates={plates}
-        motifUrl={motifUrl}
-        setCfg={setCfg}
-        totalWidth={totalWidth}
-        maxHeight={maxHeight}
-        recentlyAdded={recentlyAdded}
-        activeId={activeId}
-        setActiveId={setActiveId}
-        updatePlate={updatePlate}
-        removePlate={removePlate}
-        addPlate={addPlate}
-        resetToDefaults={resetToDefaults}
-      />
+      <div>
+        <ConfigCard
+          plates={plates}
+          motifUrl={motifUrl}
+          setCfg={setCfg}
+          totalWidth={totalWidth}
+          maxHeight={maxHeight}
+          recentlyAdded={recentlyAdded}
+          activeId={activeId}
+          setActiveId={setActiveId}
+          updatePlate={updatePlate}
+          removePlate={removePlate}
+          addPlate={addPlate}
+          resetToDefaults={resetToDefaults}
+          unit={unit}
+          setUnit={setUnit}
+        />
+      </div>
     </div>
   );
 }

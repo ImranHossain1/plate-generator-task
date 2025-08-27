@@ -8,6 +8,7 @@ export default function PlatesList({
   setActiveId,
   updatePlate,
   removePlate,
+  unit,
 }) {
   return (
     <div className="mt-3 space-y-5">
@@ -37,6 +38,7 @@ export default function PlatesList({
               onChange={(patch) => updatePlate(p.id, patch)}
               onRemove={() => removePlate(p.id)}
               canRemove={plates.length > 1}
+              unit={unit}
             />
           </Motion.div>
         ))}
