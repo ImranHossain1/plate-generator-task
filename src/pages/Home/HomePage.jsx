@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PlateRow from "../../components/plates/PlateRow.jsx";
 import PlateCanvas from "../../components/plates/PlateCanvas.jsx";
 import usePersistentState from "../../hooks/usePersistentState.js";
@@ -12,6 +12,8 @@ export default function HomePage() {
   const [cfg, setCfg] = usePersistentState("plategen:v1", DEFAULT_PLATE_CONFIG);
   const { plates, motifUrl, renderMode } = cfg;
   const { img, error: imgErr } = useImage(motifUrl);
+  const addTimeoutRef = useRef(null);
+  const removeTimeoutRef = useRef(null);
 
   // Track recently added/removed plates for animation
   const [recentlyAdded, setRecentlyAdded] = useState(null);
@@ -46,26 +48,41 @@ export default function HomePage() {
       const newPlate = { id: crypto.randomUUID(), w: 60, h: 100 };
       next.splice(idx, 0, newPlate);
 
-      // Set recently added for animation
       setRecentlyAdded(newPlate.id);
-      setTimeout(() => setRecentlyAdded(null), 1000); // Clear after animation
+
+      // Clear previous timeout if still pending
+      if (addTimeoutRef.current) clearTimeout(addTimeoutRef.current);
+      addTimeoutRef.current = setTimeout(() => {
+        setRecentlyAdded(null);
+        addTimeoutRef.current = null;
+      }, 1000);
 
       return { ...s, plates: next };
     });
 
   const removePlate = (id) => {
-    // Set recently removed for animation before actually removing
     setRecentlyRemoved(id);
 
-    setTimeout(() => {
+    // Clear previous timeout if still pending
+    if (removeTimeoutRef.current) clearTimeout(removeTimeoutRef.current);
+    removeTimeoutRef.current = setTimeout(() => {
       setCfg((s) =>
         s.plates.length <= 1
           ? s
           : { ...s, plates: s.plates.filter((p) => p.id !== id) }
       );
       setRecentlyRemoved(null);
-    }, 500); // Wait for animation to complete before removing
+      removeTimeoutRef.current = null;
+    }, 500);
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (addTimeoutRef.current) clearTimeout(addTimeoutRef.current);
+      if (removeTimeoutRef.current) clearTimeout(removeTimeoutRef.current);
+    };
+  }, []);
 
   let exportCanvasEl = null;
   const handleCanvasRef = (c) => (exportCanvasEl = c);
