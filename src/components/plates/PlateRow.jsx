@@ -94,14 +94,13 @@ export default function PlateRow({
       >
         {/* Desktop index indicator (hidden on mobile) */}
         <div
-          className={`h-9 w-9 flex items-center justify-center rounded-lg text-xs font-semibold select-none hidden md:flex
-        ${
-          isActive
-            ? "bg-slate-900 text-white"
-            : "bg-white text-slate-900 border border-slate-900"
-        }`}
+          className={`hidden md:flex h-9 w-9 items-center justify-center rounded-lg text-xs font-semibold select-none ${
+            isActive
+              ? "bg-slate-900 text-white"
+              : "bg-white text-slate-900 border border-slate-900"
+          }`}
         >
-          #{index + 1}
+          {index + 1}
         </div>
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-2">

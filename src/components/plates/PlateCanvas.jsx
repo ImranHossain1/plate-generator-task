@@ -1,12 +1,8 @@
-import { useEffect, useMemo, useRef } from "react";
-import { hatch, roundedRect } from "../../utils/canvas.js";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { hatch } from "../../utils/canvas.js";
 
-/** Safely draws an image, clamping the source rect to image bounds and
- *  adjusting the destination rect so alignment is preserved. */
 function drawImageClamped(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
   const EPS = 0.01;
-
-  // Clamp source rectangle to the image bounds
   const sxa = Math.max(0, Math.min(img.width, sx));
   const sya = Math.max(0, Math.min(img.height, sy));
   const sxb = Math.max(0, Math.min(img.width, sx + sw));
@@ -14,15 +10,13 @@ function drawImageClamped(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
 
   const clampedSW = Math.max(0, sxb - sxa);
   const clampedSH = Math.max(0, syb - sya);
-  if (clampedSW < EPS || clampedSH < EPS) return; // nothing valid to draw
+  if (clampedSW < EPS || clampedSH < EPS) return;
 
-  // Fractions cropped off each side of the original src
   const cropLeft = sw > 0 ? (sxa - sx) / sw : 0;
   const cropTop = sh > 0 ? (sya - sy) / sh : 0;
   const cropRight = sw > 0 ? (sx + sw - sxb) / sw : 0;
   const cropBottom = sh > 0 ? (sy + sh - syb) / sh : 0;
 
-  // Adjust destination rect accordingly
   const adjDx = dx + dw * cropLeft;
   const adjDy = dy + dh * cropTop;
   const adjDw = dw * (1 - cropLeft - cropRight);
@@ -43,9 +37,20 @@ function drawImageClamped(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
   );
 }
 
-export default function PlateCanvas({ plates, img, renderMode, onCanvasRef }) {
+export default function PlateCanvas({
+  plates,
+  img,
+  renderMode,
+  onCanvasRef,
+  recentlyAdded,
+  recentlyRemoved,
+}) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
+
+  // Track resized plates and direction
+  const [resizedPlates, setResizedPlates] = useState([]);
+  const prevPlatesRef = useRef([]);
 
   const totalWidth = useMemo(
     () => plates.reduce((s, p) => s + (Number(p.w) || 0), 0),
@@ -56,161 +61,211 @@ export default function PlateCanvas({ plates, img, renderMode, onCanvasRef }) {
     [plates]
   );
 
-  // expose canvas to parent (export)
+  // expose canvas to parent
   useEffect(() => {
     if (typeof onCanvasRef === "function") onCanvasRef(canvasRef.current);
   }, [onCanvasRef]);
+
+  // detect width/height changes
+  useEffect(() => {
+    const prev = prevPlatesRef.current;
+    const changes = [];
+
+    plates.forEach((p) => {
+      const prevP = prev.find((x) => x.id === p.id);
+      if (prevP && (prevP.w !== p.w || prevP.h !== p.h)) {
+        const bigger = p.w > prevP.w || p.h > prevP.h;
+        changes.push({ id: p.id, type: bigger ? "grow" : "shrink" });
+      }
+    });
+
+    if (changes.length > 0) {
+      setResizedPlates(changes);
+      setTimeout(() => setResizedPlates([]), 600);
+    }
+
+    prevPlatesRef.current = plates.map((p) => ({ ...p }));
+  }, [plates]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const wrap = wrapRef.current;
     if (!canvas || !wrap) return;
+    const ctx = canvas.getContext("2d");
 
     const cmW = Math.max(1, totalWidth);
     const cmH = Math.max(1, maxHeight);
-
-    const pad = 24; // px margin around drawing area
+    const pad = 24;
     const availW = Math.max(10, wrap.clientWidth - pad * 2);
     const availH = Math.max(10, wrap.clientHeight - pad * 2);
-
-    // Fit into available area (keeps aspect)
     const scale = Math.max(0.1, Math.min(availW / cmW, availH / cmH));
-    const pxW = Math.max(1, Math.round(cmW * scale)); // total drawing width
-    const pxH = Math.max(1, Math.round(cmH * scale)); // total drawing height
+    const pxW = Math.max(1, Math.round(cmW * scale));
+    const pxH = Math.max(1, Math.round(cmH * scale));
 
     canvas.width = pxW + pad * 2;
     canvas.height = pxH + pad * 2;
 
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    let start = null;
+    const duration = 500;
+    let animationFrame;
 
-    // background
-    ctx.fillStyle = "#f8fafc";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    function drawFrame(timestamp) {
+      if (!start) start = timestamp;
+      const progress = Math.min(1, (timestamp - start) / duration);
 
-    const originX = pad;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // helper for cover/contain crop rect
-    function getCoverSrcRect(imgW, imgH, destW, destH, mode) {
-      const srcRatio = imgW / imgH;
-      const destRatio = destW / destH;
-
-      if (mode === "contain") {
+      function getCoverSrcRect(imgW, imgH, destW, destH, mode) {
+        const srcRatio = imgW / imgH;
+        const destRatio = destW / destH;
+        if (mode === "contain") {
+          if (destRatio > srcRatio) {
+            const newW = imgH * destRatio;
+            const xOff = (imgW - newW) / 2;
+            return { x: xOff, y: 0, w: newW, h: imgH };
+          } else {
+            const newH = imgW / destRatio;
+            const yOff = (imgH - newH) / 2;
+            return { x: 0, y: yOff, w: imgW, h: newH };
+          }
+        }
+        // cover
         if (destRatio > srcRatio) {
-          const newW = imgH * destRatio;
-          const xOff = (imgW - newW) / 2;
-          return { x: xOff, y: 0, w: newW, h: imgH };
-        } else {
           const newH = imgW / destRatio;
           const yOff = (imgH - newH) / 2;
           return { x: 0, y: yOff, w: imgW, h: newH };
-        }
-      }
-      // cover
-      if (destRatio > srcRatio) {
-        const newH = imgW / destRatio;
-        const yOff = (imgH - newH) / 2;
-        return { x: 0, y: yOff, w: imgW, h: newH };
-      } else {
-        const newW = imgH * destRatio;
-        const xOff = (imgW - newW) / 2;
-        return { x: xOff, y: 0, w: newW, h: imgH };
-      }
-    }
-
-    // Compute one global source rect for the whole wall (pxW × pxH)
-    let globalSrc = null;
-    if (img && img.width > 0 && img.height > 0 && renderMode !== "tile") {
-      globalSrc = getCoverSrcRect(img.width, img.height, pxW, pxH, renderMode);
-    }
-
-    // draw plates sequentially
-    let cursorX = 0;
-    plates.forEach((p) => {
-      const w = (Number(p.w) || 0) * scale;
-      const h = (Number(p.h) || 0) * scale;
-      const x = originX + cursorX;
-      const y = pad + (pxH - h); // bottom align
-
-      ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.15)";
-      ctx.shadowBlur = 8;
-      ctx.shadowOffsetY = 2;
-
-      ctx.beginPath();
-      const r = 8;
-      roundedRect(ctx, x, y, w, h, r);
-      ctx.clip();
-
-      if (img && img.width > 0 && img.height > 0) {
-        if (renderMode === "tile") {
-          const pat = ctx.createPattern(img, "repeat");
-          if (pat) {
-            ctx.fillStyle = pat;
-            ctx.fillRect(x, y, w, h);
-          } else {
-            // fallback if pattern not created yet
-            hatch(ctx, x, y, w, h);
-          }
-        } else if (globalSrc) {
-          // Map this plate's dest rect to the corresponding slice of globalSrc
-          const fx = cursorX / pxW; // fraction from left
-          const fy = (pxH - h) / pxH; // fraction from top (bottom-aligned)
-          const fw = w / pxW; // width fraction
-          const fh = h / pxH; // height fraction
-
-          const sx = globalSrc.x + globalSrc.w * fx;
-          const sy = globalSrc.y + globalSrc.h * fy;
-          const sw = globalSrc.w * fw;
-          const sh = globalSrc.h * fh;
-
-          drawImageClamped(ctx, img, sx, sy, sw, sh, x, y, w, h);
         } else {
-          hatch(ctx, x, y, w, h);
+          const newW = imgH * destRatio;
+          const xOff = (imgW - newW) / 2;
+          return { x: xOff, y: 0, w: newW, h: imgH };
         }
-      } else {
-        hatch(ctx, x, y, w, h);
       }
 
-      ctx.restore();
+      let globalSrc = null;
+      if (img && img.width > 0 && img.height > 0 && renderMode !== "tile") {
+        globalSrc = getCoverSrcRect(
+          img.width,
+          img.height,
+          pxW,
+          pxH,
+          renderMode
+        );
+      }
 
-      // border
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#0f172a";
-      ctx.beginPath();
-      roundedRect(ctx, x, y, w, h, 8);
-      ctx.stroke();
+      let cursorX = 0;
+      plates.forEach((p) => {
+        const gap = 4;
+        const w = (Number(p.w) || 0) * scale;
+        const h = (Number(p.h) || 0) * scale;
+        const x = pad + cursorX;
+        const y = pad + (pxH - h);
 
-      // label
-      ctx.fillStyle = "#0f172a";
-      ctx.font = "12px ui-sans-serif, system-ui, -apple-system";
-      ctx.fillText(`${p.w}×${p.h} cm`, x + 8, y + 18);
+        let alpha = 1;
+        let drawW = w - gap;
+        let drawH = h;
 
-      cursorX += w;
-    });
-  }, [plates, img, totalWidth, maxHeight, renderMode]);
+        // ADD animation
+        if (p.id === recentlyAdded) {
+          alpha = progress;
+          drawW *= progress;
+          drawH *= progress;
+        }
+        // REMOVE animation
+        else if (p.id === recentlyRemoved) {
+          alpha = 1 - progress;
+          drawW *= 1 - 0.2 * progress;
+          drawH *= 1 - 0.2 * progress;
+        }
+        // RESIZE animation
+        else {
+          const resize = resizedPlates.find((r) => r.id === p.id);
+          if (resize) {
+            if (resize.type === "grow") {
+              drawW *= 0.8 + 0.2 * progress; // expand into place
+              drawH *= 0.8 + 0.2 * progress;
+            } else {
+              drawW *= 1.2 - 0.2 * progress; // shrink into place
+              drawH *= 1.2 - 0.2 * progress;
+            }
+          }
+        }
 
-  // subtle reflow fix on resize
-  useEffect(() => {
-    const onResize = () => {
-      const c = canvasRef.current;
-      if (!c) return;
-      c.style.opacity = "0.9999";
-      requestAnimationFrame(() => (c.style.opacity = "1"));
-    };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        ctx.beginPath();
+        ctx.rect(x, y + (h - drawH), drawW, drawH); // bottom-aligned
+        ctx.clip();
+
+        if (img && img.width > 0 && img.height > 0) {
+          if (renderMode === "tile") {
+            const pat = ctx.createPattern(img, "repeat");
+            if (pat) {
+              ctx.fillStyle = pat;
+              ctx.fillRect(x, y + (h - drawH), drawW, drawH);
+            } else {
+              hatch(ctx, x, y + (h - drawH), drawW, drawH);
+            }
+          } else if (globalSrc) {
+            const fx = cursorX / pxW;
+            const fy = (pxH - h) / pxH;
+            const fw = drawW / pxW;
+            const fh = drawH / pxH;
+
+            const sx = globalSrc.x + globalSrc.w * fx;
+            const sy = globalSrc.y + globalSrc.h * fy;
+            const sw = globalSrc.w * fw;
+            const sh = globalSrc.h * fh;
+
+            drawImageClamped(
+              ctx,
+              img,
+              sx,
+              sy,
+              sw,
+              sh,
+              x,
+              y + (h - drawH),
+              drawW,
+              drawH
+            );
+          }
+        } else {
+          hatch(ctx, x, y + (h - drawH), drawW, drawH);
+        }
+
+        ctx.restore();
+        cursorX += w;
+      });
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(drawFrame);
+      }
+    }
+
+    animationFrame = requestAnimationFrame(drawFrame);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [
+    plates,
+    img,
+    totalWidth,
+    maxHeight,
+    renderMode,
+    recentlyAdded,
+    recentlyRemoved,
+    resizedPlates,
+  ]);
 
   return (
     <div
       ref={wrapRef}
-      className="relative h-[520px] rounded-xl bg-slate-50 border border-slate-200 overflow-hidden
-                 flex items-center justify-center"
+      className="relative w-full h-[320px] sm:h-[420px] md:h-[520px] 
+             rounded-xl bg-slate-50 border border-slate-200 overflow-hidden 
+             flex items-center justify-center"
     >
-      <canvas ref={canvasRef} className="block" />
+      <canvas ref={canvasRef} className="block " />
     </div>
   );
 }

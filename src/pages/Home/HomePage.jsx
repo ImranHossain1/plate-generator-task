@@ -6,18 +6,21 @@ import useImage from "../../hooks/useImage.js";
 import { DEFAULT_PLATE_CONFIG, PLATE_LIMITS } from "../../constants/plates.js";
 import Card from "../../components/ui/Card.jsx";
 import Button from "../../components/ui/Button.jsx";
-import SegmentedControl from "../../components/ui/SegmentedControl.jsx";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 
 export default function HomePage() {
   const [cfg, setCfg] = usePersistentState("plategen:v1", DEFAULT_PLATE_CONFIG);
   const { plates, motifUrl, renderMode } = cfg;
   const { img, error: imgErr } = useImage(motifUrl);
 
+  // Track recently added for animation
+  const [recentlyAdded, setRecentlyAdded] = useState(null);
+
   // derived data
   const totalWidth = plates.reduce((s, p) => s + (Number(p.w) || 0), 0);
   const maxHeight = Math.max(1, ...plates.map((p) => Number(p.h) || 0));
 
-  // selection state: which plate is active (shows ranges + mm and dark badge)
+  // selection state
   const [activeId, setActiveId] = useState(plates[0]?.id || null);
   useEffect(() => {
     if (!plates.find((p) => p.id === activeId)) {
@@ -39,17 +42,40 @@ export default function HomePage() {
         ? s.plates.findIndex((p) => p.id === afterId) + 1
         : s.plates.length;
       const next = [...s.plates];
-      const newPlate = { id: crypto.randomUUID(), w: 60, h: 100 };
+      const newPlate = {
+        id: crypto.randomUUID(),
+        w: 60,
+        h: 100,
+        status: "active",
+      };
       next.splice(idx, 0, newPlate);
+
+      setRecentlyAdded(newPlate.id);
+      setTimeout(() => setRecentlyAdded(null), 500);
+
       return { ...s, plates: next };
     });
 
-  const removePlate = (id) =>
-    setCfg((s) =>
-      s.plates.length <= 1
-        ? s
-        : { ...s, plates: s.plates.filter((p) => p.id !== id) }
-    );
+  const removePlate = (id) => {
+    // mark plate as "removing" instead of deleting immediately
+    setCfg((s) => ({
+      ...s,
+      plates: s.plates.map((p) =>
+        p.id === id ? { ...p, status: "removing" } : p
+      ),
+    }));
+
+    // cleanup after animation delay
+    setTimeout(() => {
+      setCfg((s) => ({
+        ...s,
+        plates:
+          s.plates.length <= 1
+            ? s.plates // never remove the last plate
+            : s.plates.filter((p) => p.id !== id),
+      }));
+    }, 500);
+  };
 
   let exportCanvasEl = null;
   const handleCanvasRef = (c) => (exportCanvasEl = c);
@@ -62,26 +88,41 @@ export default function HomePage() {
     a.click();
   };
 
-  const resetToDefaults = () => setCfg(DEFAULT_PLATE_CONFIG);
+  const resetToDefaults = () =>
+    setCfg({
+      ...DEFAULT_PLATE_CONFIG,
+      plates: DEFAULT_PLATE_CONFIG.plates.map((p) => ({
+        ...p,
+        status: "active",
+      })),
+    });
 
   return (
-    <div className="grid md:grid-cols-2 gap-4">
+    <div className="grid md:grid-cols-2 gap-4 md:items-stretch items-start">
+      {/* Preview Card */}
       <Card
         title="Visual Preview"
         subtitle="Plates are proportional; the motif spans them continuously."
         right={<Button onClick={exportPNG}>Export PNG</Button>}
+        className="h-[320px] sm:h-[420px] md:h-[520px] flex flex-col"
       >
-        <PlateCanvas
-          plates={plates}
-          img={img}
-          renderMode={renderMode}
-          onCanvasRef={handleCanvasRef}
-        />
+        <div className="flex-1">
+          <PlateCanvas
+            plates={plates}
+            img={img}
+            renderMode={renderMode}
+            onCanvasRef={handleCanvasRef}
+            recentlyAdded={recentlyAdded}
+            // pass status info so canvas can animate removing
+            recentlyRemoved={plates.find((p) => p.status === "removing")?.id}
+          />
+        </div>
         {imgErr && (
           <div className="px-1 pt-2 text-sm text-red-600">{imgErr}</div>
         )}
       </Card>
 
+      {/* Config Card */}
       <Card title="Configuration">
         {/* Motif URL */}
         <div className="space-y-1">
@@ -114,20 +155,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Render mode */}
-        <div className="mt-4">
-          <label className="text-sm font-medium block mb-1">Image fit</label>
-          <SegmentedControl
-            value={renderMode}
-            onChange={(val) => setCfg((s) => ({ ...s, renderMode: val }))}
-            options={[
-              { value: "cover", label: "Cover" },
-              { value: "contain", label: "Contain" },
-              { value: "tile", label: "Tile" },
-            ]}
-          />
-        </div>
-
         {/* Plates list */}
         <div className="mt-5">
           <div className="flex items-end justify-between">
@@ -139,20 +166,39 @@ export default function HomePage() {
           </div>
 
           <div className="mt-3 space-y-5">
-            {plates.map((p, i) => (
-              <PlateRow
-                key={p.id}
-                plate={p}
-                index={i}
-                isActive={p.id === activeId}
-                onSelect={() => setActiveId(p.id)}
-                onChange={(patch) => updatePlate(p.id, patch)}
-                onRemove={() => removePlate(p.id)}
-                canRemove={plates.length > 1}
-              />
-            ))}
+            <AnimatePresence>
+              {plates.map((p, i) => (
+                <Motion.div
+                  key={p.id}
+                  layout
+                  initial={
+                    p.id === recentlyAdded
+                      ? { opacity: 0, scale: 0.8, y: -10 }
+                      : false
+                  }
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={
+                    p.status === "removing"
+                      ? { opacity: 0, scale: 0.8, y: -10 }
+                      : { opacity: 0 }
+                  }
+                  transition={{ duration: 0.4 }}
+                >
+                  <PlateRow
+                    plate={p}
+                    index={i}
+                    isActive={p.id === activeId}
+                    onSelect={() => setActiveId(p.id)}
+                    onChange={(patch) => updatePlate(p.id, patch)}
+                    onRemove={() => removePlate(p.id)}
+                    canRemove={plates.length > 1}
+                  />
+                </Motion.div>
+              ))}
+            </AnimatePresence>
           </div>
 
+          {/* Buttons */}
           <div className="mt-5 flex flex-col gap-2 w-full md:flex-row md:justify-end">
             <Button
               onClick={() => addPlate()}
@@ -174,6 +220,7 @@ export default function HomePage() {
               Zurücksetzen
             </Button>
           </div>
+
           <p className="mt-2 text-xs text-slate-500 text-center md:text-left">
             Limits: width {PLATE_LIMITS.MIN_W}–{PLATE_LIMITS.MAX_W} cm, height{" "}
             {PLATE_LIMITS.MIN_H}–{PLATE_LIMITS.MAX_H} cm, up to{" "}
