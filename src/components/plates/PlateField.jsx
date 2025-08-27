@@ -10,23 +10,29 @@ export default function PlateField({
   onChange,
   onBlur,
   isActive,
+  unit,
 }) {
   const cmToMmLabel = (val) => {
     const num = parseLocaleNumber(val);
     if (Number.isNaN(num)) return null;
-    const mm = num * 10;
+    const cm = unit === "cm" ? num : num * 2.54;
+    const mm = cm * 10;
     return Number.isInteger(mm) ? String(mm) : mm.toFixed(1);
   };
 
   const mm = cmToMmLabel(draft);
-
   return (
     <div>
       {isActive && (
         <div className="flex justify-between items-baseline mb-1">
           <span className="text-xs font-medium text-slate-600">{label}</span>
           <span className="text-[10px] text-slate-400">
-            {min} – {max} cm
+            {unit === "cm"
+              ? `${min} – ${max} cm`
+              : `${(((min / 2.54) * 100) / 100).toFixed(2)} – ${(
+                  ((max / 2.54) * 100) /
+                  100
+                ).toFixed(2)} inch`}
           </span>
         </div>
       )}
@@ -37,7 +43,7 @@ export default function PlateField({
         onChange={onChange}
         onBlur={onBlur}
         inputMode="decimal"
-        rightAddon="cm"
+        rightAddon={unit}
         className="rounded-lg"
       />
       <div className="mt-1">

@@ -12,47 +12,76 @@ export default function PlateRow({
   onChange,
   onRemove,
   canRemove,
+  unit,
 }) {
-  const [wDraft, setWDraft] = useState(String(plate.w));
-  const [hDraft, setHDraft] = useState(String(plate.h));
+  // helpers
+  const cmToUnit = (cm) =>
+    unit === "cm" ? cm : Math.round((cm / 2.54) * 100) / 100;
+  const unitToCm = (val) => (unit === "cm" ? val : val * 2.54);
+
+  const [wDraft, setWDraft] = useState(String(cmToUnit(plate.w)));
+  const [hDraft, setHDraft] = useState(String(cmToUnit(plate.h)));
   const [wError, setWError] = useState("");
   const [hError, setHError] = useState("");
 
-  // keep drafts in sync if plate changes externally
-  useEffect(() => setWDraft(String(plate.w)), [plate.w]);
-  useEffect(() => setHDraft(String(plate.h)), [plate.h]);
+  // keep drafts in sync if plate values or unit change (inline logic to satisfy exhaustive-deps)
+  useEffect(() => {
+    const val =
+      unit === "cm" ? plate.w : Math.round((plate.w / 2.54) * 100) / 100;
+    setWDraft(String(val));
+  }, [plate.w, unit]);
+
+  useEffect(() => {
+    const val =
+      unit === "cm" ? plate.h : Math.round((plate.h / 2.54) * 100) / 100;
+    setHDraft(String(val));
+  }, [plate.h, unit]);
+
+  // clear stale error strings when unit or plate values change
+  useEffect(() => {
+    setWError("");
+    setHError("");
+  }, [unit, plate.w, plate.h]);
 
   const validate = (val, min, max) => {
     const num = parseLocaleNumber(val);
     if (Number.isNaN(num)) return { ok: false, err: "Not a number" };
-    if (num < min || num > max) {
-      return { ok: false, err: `Must be between ${min}–${max} cm` };
+
+    // compare in cm (internal source of truth)
+    const numCm = parseFloat(unitToCm(num).toFixed(2));
+    if (numCm < min || numCm > max) {
+      return {
+        ok: false,
+        err: `Must be between ${cmToUnit(min).toFixed(2)}–${cmToUnit(
+          max
+        ).toFixed(2)} ${unit}`,
+      };
     }
-    return { ok: true, num };
+    return { ok: true, numCm };
   };
 
   const handleBlurW = () => {
     const res = validate(wDraft, PLATE_LIMITS.MIN_W, PLATE_LIMITS.MAX_W);
     if (!res.ok) {
       setWError(res.err);
-      setWDraft(String(plate.w)); // revert to last good
+      setWDraft(String(cmToUnit(plate.w))); // revert to last valid
       return;
     }
     setWError("");
-    if (res.num !== plate.w) onChange({ w: res.num });
-    setWDraft(String(res.num));
+    if (res.numCm !== plate.w) onChange({ w: res.numCm });
+    setWDraft(String(cmToUnit(res.numCm)));
   };
 
   const handleBlurH = () => {
     const res = validate(hDraft, PLATE_LIMITS.MIN_H, PLATE_LIMITS.MAX_H);
     if (!res.ok) {
       setHError(res.err);
-      setHDraft(String(plate.h)); // revert to last good
+      setHDraft(String(cmToUnit(plate.h)));
       return;
     }
     setHError("");
-    if (res.num !== plate.h) onChange({ h: res.num });
-    setHDraft(String(res.num));
+    if (res.numCm !== plate.h) onChange({ h: res.numCm });
+    setHDraft(String(cmToUnit(res.numCm)));
   };
 
   return (
@@ -60,11 +89,11 @@ export default function PlateRow({
       {/* Mobile-only index badge */}
       <div
         className={`absolute -top-2 -left-2 w-5 h-5 flex items-center justify-center rounded-full text-xs font-semibold select-none md:hidden z-10
-    ${
-      isActive
-        ? "bg-slate-900 text-white"
-        : "bg-white text-slate-900 border border-slate-900"
-    }`}
+        ${
+          isActive
+            ? "bg-slate-900 text-white"
+            : "bg-white text-slate-900 border border-slate-900"
+        }`}
       >
         {index + 1}
       </div>
@@ -92,7 +121,7 @@ export default function PlateRow({
         tabIndex={0}
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelect()}
       >
-        {/* Desktop index indicator (hidden on mobile) */}
+        {/* Desktop index indicator */}
         <div
           className={`hidden md:flex h-9 w-9 items-center justify-center rounded-lg text-xs font-semibold select-none ${
             isActive
@@ -113,6 +142,7 @@ export default function PlateRow({
             onChange={(e) => setWDraft(e.target.value)}
             onBlur={handleBlurW}
             isActive={isActive}
+            unit={unit}
           />
           <PlateField
             label="Höhe"
@@ -123,10 +153,11 @@ export default function PlateRow({
             onChange={(e) => setHDraft(e.target.value)}
             onBlur={handleBlurH}
             isActive={isActive}
+            unit={unit}
           />
         </div>
 
-        {/* Desktop remove button (hidden on mobile) */}
+        {/* Desktop remove button */}
         <div className="hidden md:flex items-center gap-1 self-center">
           <Button
             variant="danger"
