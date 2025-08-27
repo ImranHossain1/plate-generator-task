@@ -3,8 +3,6 @@
 A React app to design a plate generator system for configuring and visualizing custom wall plates: enter plate dimensions in **cm/inch**, preview a **continuous motif** spanning all plates, and export a **PNG**. Supports **English/German** (react-intl).
 
 ![Preview](./docs/images/preview.png)
-![Mirroring](./docs/images/mirroring.png)
-![Mobile Scroll](./docs/images/mobile-scroll.png)
 
 > Tip: The preview supports **horizontal scroll** for wide layouts and **mirrors** the image for layouts wider than 300 cm to keep a seamless look.
 
@@ -66,6 +64,12 @@ Open the printed local URL (usually `http://localhost:5173`).
 npm run build
 npm run preview
 ```
+
+---
+
+## 🔗 Live Demo
+
+[Live Server on Vercel](https://plate-generator-task.vercel.app/)
 
 ---
 
@@ -154,7 +158,7 @@ export const PLATE_LIMITS = {
 
 export const DEFAULT_PLATE_CONFIG = {
   motifUrl: "https://…/sample.jpg",
-  renderMode: "cover", // 'cover' | 'contain' | 'tile'
+  renderMode: "cover",
   plates: [
     { id: crypto.randomUUID(), w: 60, h: 100 },
     { id: crypto.randomUUID(), w: 60, h: 100 },
