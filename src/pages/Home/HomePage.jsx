@@ -47,33 +47,41 @@ export default function HomePage() {
   const resetToDefaults = () => setCfg(resetConfigHelper());
 
   return (
-    <div className="grid md:grid-cols-2 gap-4 md:items-stretch items-start">
-      <PreviewCard
-        plates={plates}
-        img={img}
-        imgErr={imgErr}
-        renderMode={renderMode}
-        handleCanvasRef={handleCanvasRef}
-        recentlyAdded={recentlyAdded}
-        exportPNG={exportPNG}
-      />
-      <div>
-        <ConfigCard
-          plates={plates}
-          motifUrl={motifUrl}
-          setCfg={setCfg}
-          totalWidth={totalWidth}
-          maxHeight={maxHeight}
-          recentlyAdded={recentlyAdded}
-          activeId={activeId}
-          setActiveId={setActiveId}
-          updatePlate={updatePlate}
-          removePlate={removePlate}
-          addPlate={addPlate}
-          resetToDefaults={resetToDefaults}
-          unit={unit}
-          setUnit={setUnit}
-        />
+    <div className="mx-auto max-w-7xl">
+      {/* Preview grows (min-w-0 so it can overflow), Card column does not shrink */}
+      <div className="grid gap-6 md:grid-cols-[1fr_480px]">
+        {/* Left: Preview */}
+        <div className="min-w-0">
+          <PreviewCard
+            plates={plates}
+            img={img}
+            imgErr={imgErr}
+            renderMode={renderMode}
+            handleCanvasRef={handleCanvasRef}
+            recentlyAdded={recentlyAdded}
+            exportPNG={exportPNG}
+          />
+        </div>
+
+        {/* Right: Config */}
+        <div className="w-full md:w-[480px] md:flex-none">
+          <ConfigCard
+            plates={plates}
+            motifUrl={motifUrl}
+            setCfg={setCfg}
+            totalWidth={totalWidth}
+            maxHeight={maxHeight}
+            recentlyAdded={recentlyAdded}
+            activeId={activeId}
+            setActiveId={setActiveId}
+            updatePlate={updatePlate}
+            removePlate={removePlate}
+            addPlate={addPlate}
+            resetToDefaults={resetToDefaults}
+            unit={unit}
+            setUnit={setUnit}
+          />
+        </div>
       </div>
     </div>
   );
