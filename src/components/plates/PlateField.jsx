@@ -29,9 +29,10 @@ export default function PlateField({
           <span className="text-[10px] text-slate-400">
             {unit === "cm"
               ? `${min} – ${max} cm`
-              : `${Math.ceil((min / 2.54) * 100) / 100} – ${
-                  Math.floor((max / 2.54) * 100) / 100
-                } inch`}
+              : `${(((min / 2.54) * 100) / 100).toFixed(2)} – ${(
+                  ((max / 2.54) * 100) /
+                  100
+                ).toFixed(2)} inch`}
           </span>
         </div>
       )}
