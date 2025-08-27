@@ -11,12 +11,7 @@ export default function PlateRow({
   onSelect = () => {},
   onChange,
   onRemove,
-  onAddAfter,
   canRemove,
-  canMoveLeft,
-  canMoveRight,
-  onMoveLeft,
-  onMoveRight,
 }) {
   const [wDraft, setWDraft] = useState(String(plate.w));
   const [hDraft, setHDraft] = useState(String(plate.h));
@@ -61,86 +56,24 @@ export default function PlateRow({
   };
 
   return (
-    <div
-      className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border border-gray-200 bg-gray-100 p-3 shadow-sm"
-      onClick={onSelect} // row click selects
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelect()}
-    >
+    <div className="relative">
+      {/* Mobile-only index badge */}
       <div
-        className={`h-9 w-9 flex items-center justify-center rounded-lg text-xs font-semibold select-none
-          ${
-            isActive
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-900 border border-slate-900"
-          }`}
+        className={`absolute -top-2 -left-2 w-5 h-5 flex items-center justify-center rounded-full text-xs font-semibold select-none md:hidden z-10
+    ${
+      isActive
+        ? "bg-slate-900 text-white"
+        : "bg-white text-slate-900 border border-slate-900"
+    }`}
       >
-        #{index + 1}
+        {index + 1}
       </div>
 
-      <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-        <PlateField
-          label="Breite"
-          min={PLATE_LIMITS.MIN_W}
-          max={PLATE_LIMITS.MAX_W}
-          draft={wDraft}
-          error={wError}
-          onChange={(e) => setWDraft(e.target.value)}
-          onBlur={handleBlurW}
-          isActive={isActive}
-        />
-        <PlateField
-          label="Höhe"
-          min={PLATE_LIMITS.MIN_H}
-          max={PLATE_LIMITS.MAX_H}
-          draft={hDraft}
-          error={hError}
-          onChange={(e) => setHDraft(e.target.value)}
-          onBlur={handleBlurH}
-          isActive={isActive}
-        />
-      </div>
-
-      <div className="flex items-center gap-1 self-center">
-        <Button
-          variant="outline"
-          className="h-7 w-7 rounded-full p-0 text-sm leading-none"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAddAfter();
-          }}
-          title="Add after"
-        >
-          +
-        </Button>
-        <Button
-          variant="outline"
-          className="h-7 w-7 rounded-full p-0 text-sm leading-none"
-          onClick={(e) => {
-            e.stopPropagation();
-            onMoveLeft();
-          }}
-          disabled={!canMoveLeft}
-          title="Move left"
-        >
-          ◀
-        </Button>
-        <Button
-          variant="outline"
-          className="h-7 w-7 rounded-full p-0 text-sm leading-none"
-          onClick={(e) => {
-            e.stopPropagation();
-            onMoveRight();
-          }}
-          disabled={!canMoveRight}
-          title="Move right"
-        >
-          ▶
-        </Button>
+      {/* Mobile-only remove button */}
+      <div className="absolute -top-2 -right-2 md:hidden z-10">
         <Button
           variant="danger"
-          className="h-7 w-7 rounded-full p-0 text-sm leading-none bg-rose-50"
+          className="h-5 w-5 rounded-full p-0 text-xs leading-none bg-rose-50"
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
@@ -150,6 +83,65 @@ export default function PlateRow({
         >
           -
         </Button>
+      </div>
+
+      <div
+        className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border border-gray-200 bg-gray-100 p-3 shadow-sm relative"
+        onClick={onSelect}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelect()}
+      >
+        {/* Desktop index indicator (hidden on mobile) */}
+        <div
+          className={`h-9 w-9 flex items-center justify-center rounded-lg text-xs font-semibold select-none hidden md:flex
+        ${
+          isActive
+            ? "bg-slate-900 text-white"
+            : "bg-white text-slate-900 border border-slate-900"
+        }`}
+        >
+          #{index + 1}
+        </div>
+
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+          <PlateField
+            label="Breite"
+            min={PLATE_LIMITS.MIN_W}
+            max={PLATE_LIMITS.MAX_W}
+            draft={wDraft}
+            error={wError}
+            onChange={(e) => setWDraft(e.target.value)}
+            onBlur={handleBlurW}
+            isActive={isActive}
+          />
+          <PlateField
+            label="Höhe"
+            min={PLATE_LIMITS.MIN_H}
+            max={PLATE_LIMITS.MAX_H}
+            draft={hDraft}
+            error={hError}
+            onChange={(e) => setHDraft(e.target.value)}
+            onBlur={handleBlurH}
+            isActive={isActive}
+          />
+        </div>
+
+        {/* Desktop remove button (hidden on mobile) */}
+        <div className="hidden md:flex items-center gap-1 self-center">
+          <Button
+            variant="danger"
+            className="h-7 w-7 rounded-full p-0 text-sm leading-none bg-rose-50"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove();
+            }}
+            disabled={!canRemove}
+            title="Remove"
+          >
+            -
+          </Button>
+        </div>
       </div>
     </div>
   );
