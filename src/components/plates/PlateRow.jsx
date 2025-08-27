@@ -94,7 +94,7 @@ export default function PlateRow({
       >
         {/* Desktop index indicator (hidden on mobile) */}
         <div
-          className={`h-9 w-9 flex items-center justify-center rounded-lg text-xs font-semibold select-none hidden md:flex
+          className={`h-9 w-9 flex items-center justify-center rounded-lg text-xs font-semibold select-none  md:flex
         ${
           isActive
             ? "bg-slate-900 text-white"
