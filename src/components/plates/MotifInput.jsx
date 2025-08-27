@@ -1,9 +1,13 @@
+import { FormattedMessage } from "react-intl";
 import Button from "../ui/Button.jsx";
 
 export default function MotifInput({ motifUrl, setCfg }) {
   return (
     <div className="space-y-1">
-      <label className="text-sm font-medium">Motif image URL</label>
+      <label className="text-sm font-medium">
+        <FormattedMessage id="config.imageUrl" />
+      </label>
+
       <input
         type="url"
         placeholder="https://..."
@@ -11,6 +15,7 @@ export default function MotifInput({ motifUrl, setCfg }) {
         value={motifUrl}
         onChange={(e) => setCfg((s) => ({ ...s, motifUrl: e.target.value }))}
       />
+
       <div className="flex gap-2">
         <Button
           variant="subtle"
@@ -22,10 +27,11 @@ export default function MotifInput({ motifUrl, setCfg }) {
             }))
           }
         >
-          Use Sample
+          <FormattedMessage id="config.useSample" />
         </Button>
+
         <span className="text-xs text-slate-500 self-center">
-          Tip: needs a CORS-enabled image URL.
+          <FormattedMessage id="preview.url.tip" />
         </span>
       </div>
     </div>

@@ -1,0 +1,34 @@
+{
+  "app.title": "Plate Generator",
+  "nav.lang.en": "English",
+  "nav.lang.de": "Deutsch",
+
+  "preview.title": "Visual Preview",
+  "preview.subtitle": "Plates are proportional; the motif spans them continuously.",
+  "preview.export": "Export PNG",
+  "preview.url.tip": "Tip: needs a CORS-enabled image URL.",
+
+  "config.title": "Configuration",
+  "config.imageUrl": "Motif Image URL",
+  "config.useSample": "Use Sample",
+  "config.inputs": "Measurements · Inputs",
+  "config.add": "Add Backsplash ",
+  "config.reset": "Reset",
+  "config.total": "Total width",
+  "config.maxHeight": "Max height",
+
+  "units.cm": "cm",
+  "units.inch": "inch",
+
+  "plate.width": "Width",
+  "plate.height": "Height",
+  "plate.remove": "Remove",
+
+  "errors.notNumber": "Not a number",
+  "errors.range": "Must be between {min}–{max} {unit}",
+
+  "marks.600mm": "600 mm",
+  "marks.1000mm": "1000 mm",
+
+  "footer.text": "{name}. All rights reserved."
+}
