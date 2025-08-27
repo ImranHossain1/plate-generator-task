@@ -1,3 +1,4 @@
+import { FormattedMessage, FormattedNumber } from "react-intl";
 import Button from "../ui/Button.jsx";
 import { PLATE_LIMITS } from "../../constants/plates.js";
 
@@ -18,32 +19,40 @@ export default function PlatesActions({
           variant="success"
           className="w-full md:w-auto"
         >
-          Rückwand hinzufügen{" "}
+          <FormattedMessage id="config.add" />{" "}
           <span aria-hidden className="text-base leading-none">
             +
           </span>
         </Button>
+
         <Button
           variant="danger"
           onClick={resetToDefaults}
           className="w-full mt-2 md:mt-0 md:w-auto"
         >
-          Zurücksetzen
+          <FormattedMessage id="config.reset" />
         </Button>
       </div>
 
       <div className="mt-2 text-xs text-slate-500 text-center md:text-left">
-        Total width:{" "}
+        <FormattedMessage id="config.total" />:{" "}
         <b>
-          {unit === "cm"
-            ? totalWidth.toFixed(2)
-            : (totalWidth / 2.54).toFixed(2)}
+          <FormattedNumber
+            value={unit === "cm" ? totalWidth : totalWidth / 2.54}
+            minimumFractionDigits={2}
+            maximumFractionDigits={2}
+          />
         </b>{" "}
-        {unit} · Max height:{" "}
+        <FormattedMessage id={unit === "cm" ? "units.cm" : "units.inch"} /> ·{" "}
+        <FormattedMessage id="config.maxHeight" />:{" "}
         <b>
-          {unit === "cm" ? maxHeight.toFixed(2) : (maxHeight / 2.54).toFixed(2)}
+          <FormattedNumber
+            value={unit === "cm" ? maxHeight : maxHeight / 2.54}
+            minimumFractionDigits={2}
+            maximumFractionDigits={2}
+          />
         </b>{" "}
-        {unit}
+        <FormattedMessage id={unit === "cm" ? "units.cm" : "units.inch"} />
       </div>
     </>
   );

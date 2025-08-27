@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import usePersistentState from "../../hooks/usePersistentState.js";
 import useImage from "../../hooks/useImage.js";
 import { DEFAULT_PLATE_CONFIG } from "../../constants/plates.js";
@@ -40,9 +40,14 @@ export default function HomePage() {
 
   const removePlate = (id) => removePlateHelper(cfg, id, setCfg);
 
-  let exportCanvasEl = null;
-  const handleCanvasRef = (c) => (exportCanvasEl = c);
-  const exportPNG = () => exportPNGHelper(exportCanvasEl);
+  // ✅ Use a ref so exportPNG always has the current canvas
+  const exportCanvasRef = useRef(null);
+  const handleCanvasRef = useCallback((c) => {
+    exportCanvasRef.current = c;
+  }, []);
+  const exportPNG = useCallback(() => {
+    exportPNGHelper(exportCanvasRef.current);
+  }, []);
 
   const resetToDefaults = () => setCfg(resetConfigHelper());
 

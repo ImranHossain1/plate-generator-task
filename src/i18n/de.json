@@ -1,0 +1,34 @@
+{
+  "app.title": "Rückwand-Generator",
+  "nav.lang.en": "English",
+  "nav.lang.de": "Deutsch",
+
+  "preview.title": "Visuelle Vorschau",
+  "preview.subtitle": "Platten sind proportional; das Motiv verläuft fortlaufend über alle Platten.",
+  "preview.export": "PNG exportieren",
+  "preview.url.tip": "Tipp: Erfordert eine CORS-fähige Bild-URL.",
+
+  "config.title": "Konfiguration",
+  "config.imageUrl": "Motiv-Bild URL",
+  "config.useSample": "Beispiel verwenden",
+  "config.inputs": "Maße · Eingaben",
+  "config.add": "Rückwand hinzufügen ",
+  "config.reset": "Zurücksetzen",
+  "config.total": "Gesamtbreite",
+  "config.maxHeight": "Maximale Höhe",
+
+  "units.cm": "cm",
+  "units.inch": "inch",
+
+  "plate.width": "Breite",
+  "plate.height": "Höhe",
+  "plate.remove": "Entfernen",
+
+  "errors.notNumber": "Keine Zahl",
+  "errors.range": "Muss zwischen {min}–{max} {unit} liegen",
+
+  "marks.600mm": "600 mm",
+  "marks.1000mm": "1000 mm",
+
+  "footer.text": "{name}. Alle Rechte vorbehalten."
+}

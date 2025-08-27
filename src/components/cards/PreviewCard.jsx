@@ -1,3 +1,4 @@
+import { useIntl, FormattedMessage } from "react-intl";
 import PlateCanvas from "../plates/PlateCanvas.jsx";
 import Card from "../ui/Card.jsx";
 import Button from "../ui/Button.jsx";
@@ -11,11 +12,17 @@ export default function PreviewCard({
   recentlyAdded,
   exportPNG,
 }) {
+  const intl = useIntl();
+
   return (
     <Card
-      title="Visual Preview"
-      subtitle="Plates are proportional; the motif spans them continuously."
-      right={<Button onClick={exportPNG}>Export PNG</Button>}
+      title={intl.formatMessage({ id: "preview.title" })}
+      subtitle={intl.formatMessage({ id: "preview.subtitle" })}
+      right={
+        <Button onClick={exportPNG}>
+          <FormattedMessage id="preview.export" />
+        </Button>
+      }
       className="h-[280px] sm:h-[360px] md:h-[460px] lg:h-[520px] flex flex-col"
     >
       <div className="flex-1">
@@ -28,7 +35,15 @@ export default function PreviewCard({
           recentlyRemoved={plates.find((p) => p.status === "removing")?.id}
         />
       </div>
-      {imgErr && <div className="px-1 pt-2 text-sm text-red-600">{imgErr}</div>}
+
+      {imgErr && (
+        <div className="px-1 pt-2 text-sm">
+          <div className="text-red-600">{imgErr}</div>
+          <div className="text-slate-500 mt-1">
+            <FormattedMessage id="preview.url.tip" />
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
