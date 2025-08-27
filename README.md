@@ -159,7 +159,8 @@ export const PLATE_LIMITS = {
 };
 
 export const DEFAULT_PLATE_CONFIG = {
-  motifUrl: "https://…/sample.jpg",
+  motifUrl:
+    "https://rueckwand24.com/cdn/shop/files/Kuechenrueckwand-Kuechenrueckwand-Gruene-frische-Kraeuter-KR-000018-HB.jpg?v=1695288356&width=1200",
   renderMode: "cover",
   plates: [
     { id: crypto.randomUUID(), w: 60, h: 100 },
