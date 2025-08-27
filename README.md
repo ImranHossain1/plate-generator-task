@@ -41,9 +41,11 @@ A React app to design a plate generator system for configuring and visualizing c
 ### Installation
 
 ```bash
-# clone your repo
+# clone your repo (choose one)
+# SSH (requires SSH key setup):
 git clone git@github.com:ImranHossain1/plate-generator-task.git
-cd plate-generator-task
+# HTTPS (works everywhere):
+git clone https://github.com/ImranHossain1/plate-generator-task.git
 
 # install deps
 npm install
