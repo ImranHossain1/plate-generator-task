@@ -41,7 +41,6 @@ export default function PlateField({
         </div>
       )}
 
-      {/* Input with right addon for unit */}
       <div className="relative">
         <Input
           value={draft}
@@ -49,7 +48,7 @@ export default function PlateField({
           onBlur={onBlur}
           inputMode="decimal"
           className={[
-            "rounded-lg pr-14", // space for unit addon
+            "rounded-lg pr-14",
             error ? "border-destructive focus-visible:ring-destructive" : "",
           ].join(" ")}
           aria-invalid={!!error}

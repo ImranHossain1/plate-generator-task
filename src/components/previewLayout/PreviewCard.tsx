@@ -1,9 +1,7 @@
 import { useMemo } from "react";
-import { useIntl, FormattedMessage } from "react-intl";
-import PlateCanvas from "../plates/PlateCanvas";
+import { FormattedMessage } from "react-intl";
+import PlateCanvas from "./PlateCanvas";
 import { PreviewCardProps } from "../../utils/types";
-import AppButton from "../common/AppButton";
-import AppCard from "../common/AppCard";
 
 export default function PreviewCard({
   plates,
@@ -13,8 +11,6 @@ export default function PreviewCard({
   recentlyAdded,
   exportPNG,
 }: PreviewCardProps) {
-  const intl = useIntl();
-
   const recentlyRemovedId = useMemo(
     () => plates.find((p) => p.status === "removing")?.id ?? null,
     [plates]

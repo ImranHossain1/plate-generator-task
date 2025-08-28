@@ -1,4 +1,3 @@
-// src/components/common/AppButton.tsx
 import { FormattedMessage } from "react-intl";
 import type { ComponentProps } from "react";
 import { Button } from "../ui/Button";

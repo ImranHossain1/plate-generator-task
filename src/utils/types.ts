@@ -1,7 +1,32 @@
+import { ComponentProps } from "react";
+import { Card } from "../components/ui/Card";
 import { Plate, PlateConfig } from "../constants/plates";
 import type { Stage as KonvaStage } from "konva/lib/Stage";
+import { Button } from "../components/ui/Button";
+
+/* ─── DOMAIN / DATA TYPES ── */
 
 export type Unit = "cm" | "inch";
+export type PlateWithStatus = Plate & { status?: "active" | "removing" };
+export type CoverRect = { x: number; y: number; w: number; h: number };
+export type CropRect = { x: number; y: number; width: number; height: number };
+
+export type RemovedGhost = {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  crop: CropRect | null;
+} | null;
+
+export type ResizeChange = { id: string; type: "grow" | "shrink" };
+
+/* ─── REACT COMPONENT PROPS TYPES ───── */
+export type CardDomProps = Omit<
+  React.ComponentProps<typeof Card>,
+  "children" | "className"
+>;
 
 export type PlateFieldProps = {
   label: React.ReactNode;
@@ -44,8 +69,6 @@ export type PlatesListProps = {
   unit: Unit;
 };
 
-export type PlateWithStatus = Plate & { status?: "active" | "removing" };
-
 export type PreviewCardProps = {
   plates: PlateWithStatus[];
   img: HTMLImageElement | null;
@@ -82,20 +105,12 @@ export type RemovedGhostProps = {
   sourceImg: CanvasImageSource | null;
 };
 
-export type CoverRect = { x: number; y: number; w: number; h: number };
-export type CropRect = { x: number; y: number; width: number; height: number };
-export type RemovedGhost = {
-  id: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  crop: CropRect | null;
-} | null;
-
-export type ResizeChange = { id: string; type: "grow" | "shrink" };
-
+/* ─── CONSTANTS (UI / LAYOUT CONFIG) ─── */
 export const PAD = 24;
 export const GAP = 4;
 export const ANIM_S = 0.5;
 export const MAX_STAGE_WIDTH = 12000;
+
+/* ─── INTERNATIONALIZATION / LOCALE ──── */
+export type Locale = "en" | "de";
+export type Messages = Record<string, string>;

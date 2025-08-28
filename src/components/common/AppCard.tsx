@@ -7,11 +7,7 @@ import {
   CardTitle,
 } from "../ui/Card";
 import { cn } from "../../lib/utils";
-
-type CardDomProps = Omit<
-  React.ComponentProps<typeof Card>,
-  "children" | "className"
->;
+import { CardDomProps } from "../../utils/types";
 
 type AppCardProps = CardDomProps & {
   title?: ReactNode;

@@ -3,10 +3,8 @@ import { IntlProvider } from "react-intl";
 import { LocaleCtx } from "./LocaleContext";
 import en from "./en.json";
 import de from "./de.json";
+import { Locale, Messages } from "../utils/types";
 
-export type Locale = "en" | "de";
-
-type Messages = Record<string, string>;
 const MESSAGES: Record<Locale, Messages> = {
   en: en as Messages,
   de: de as Messages,

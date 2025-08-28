@@ -14,7 +14,7 @@ type ToggleProps<T extends string> = {
   ariaLabel?: string;
   className?: string;
   itemClassName?: string;
-  rounded?: boolean; // pill style
+  rounded?: boolean;
 };
 
 export default function AppToggle<T extends string>({
@@ -26,7 +26,6 @@ export default function AppToggle<T extends string>({
   itemClassName,
   rounded = true,
 }: ToggleProps<T>) {
-  // Narrow unknown string from ToggleGroup to T using provided options
   const isValid = React.useCallback(
     (v: string): v is T => options.some((o) => o.value === (v as T)),
     [options]
