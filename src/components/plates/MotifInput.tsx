@@ -1,12 +1,7 @@
 import { FormattedMessage } from "react-intl";
-import { PlateConfig } from "../../constants/plates";
 import AppButton from "../common/AppButton";
 import { Input } from "../ui/input";
-
-type MotifInputProps = {
-  motifUrl: string;
-  setCfg: React.Dispatch<React.SetStateAction<PlateConfig>>;
-};
+import { MotifInputProps } from "../../utils/types";
 
 export default function MotifInput({ motifUrl, setCfg }: MotifInputProps) {
   return (

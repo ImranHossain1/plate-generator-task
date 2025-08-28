@@ -1,18 +1,6 @@
-import { motion as Motion, AnimatePresence } from "framer-motion";
+import { Transition } from "@headlessui/react";
 import PlateRow from "./PlateRow";
-import { Plate } from "../../constants/plates";
-
-type Unit = "cm" | "inch";
-
-type PlatesListProps = {
-  plates: (Plate & { status?: "removing" | "idle" })[];
-  recentlyAdded?: string | null;
-  activeId: string | null;
-  setActiveId: (id: string | null) => void;
-  updatePlate: (id: string, patch: Partial<Pick<Plate, "w" | "h">>) => void;
-  removePlate: (id: string) => void;
-  unit: Unit;
-};
+import { PlatesListProps } from "../../utils/types";
 
 export default function PlatesList({
   plates,
@@ -25,24 +13,19 @@ export default function PlatesList({
 }: PlatesListProps) {
   return (
     <div className="mt-3 space-y-5">
-      <AnimatePresence>
-        {plates.map((p, i) => (
-          <Motion.div
-            key={p.id}
-            layout
-            initial={
-              p.id === recentlyAdded
-                ? { opacity: 0, scale: 0.8, y: -10 }
-                : false
-            }
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={
-              p.status === "removing"
-                ? { opacity: 0, scale: 0.8, y: -10 }
-                : { opacity: 0 }
-            }
-            transition={{ duration: 0.4 }}
-          >
+      {plates.map((p, i) => (
+        <Transition
+          key={p.id}
+          appear
+          show={p.status !== "removing"}
+          enter="transition duration-300 ease-out"
+          enterFrom="opacity-0 scale-95 -translate-y-2"
+          enterTo="opacity-100 scale-100 translate-y-0"
+          leave="transition duration-200 ease-in"
+          leaveFrom="opacity-100 scale-100 translate-y-0"
+          leaveTo="opacity-0 scale-95 -translate-y-2"
+        >
+          <div>
             <PlateRow
               plate={p}
               index={i}
@@ -53,9 +36,9 @@ export default function PlatesList({
               canRemove={plates.length > 1}
               unit={unit}
             />
-          </Motion.div>
-        ))}
-      </AnimatePresence>
+          </div>
+        </Transition>
+      ))}
     </div>
   );
 }

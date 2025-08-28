@@ -8,18 +8,23 @@ import {
 } from "../ui/Card";
 import { cn } from "../../lib/utils";
 
-type AppCardProps = {
+type CardDomProps = Omit<
+  React.ComponentProps<typeof Card>,
+  "children" | "className"
+>;
+
+type AppCardProps = CardDomProps & {
   title?: ReactNode;
   subtitle?: ReactNode;
-  action?: ReactNode; // e.g. button(s) in header right
-  children: ReactNode; // goes inside CardContent
+  action?: ReactNode;
+  children: ReactNode;
   className?: string;
   headerClassName?: string;
   contentClassName?: string;
   titleClassName?: string;
   descriptionClassName?: string;
-  noHeaderPadding?: boolean; // allow tighter header
-  noContentPadding?: boolean; // allow tighter content
+  noHeaderPadding?: boolean;
+  noContentPadding?: boolean;
 };
 
 export default function AppCard({
@@ -34,9 +39,10 @@ export default function AppCard({
   descriptionClassName,
   noHeaderPadding,
   noContentPadding,
+  ...rest
 }: AppCardProps) {
   return (
-    <Card className={cn("flex flex-col", className)}>
+    <Card {...rest} className={cn("flex flex-col", className)}>
       {(title || subtitle || action) && (
         <CardHeader
           className={cn("pb-0", noHeaderPadding && "p-0", headerClassName)}

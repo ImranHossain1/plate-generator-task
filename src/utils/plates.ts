@@ -1,10 +1,10 @@
 import type React from "react";
 import {
   DEFAULT_PLATE_CONFIG,
+  Plate,
   PLATE_LIMITS,
-  type Plate,
-  type PlateConfig,
-} from "@/constants/plates";
+  PlateConfig,
+} from "../constants/plates";
 
 /** Optional UI status on a plate (for animations, etc.) */
 export type PlateWithStatus = Plate & { status?: "active" | "removing" };
@@ -36,9 +36,15 @@ export function addPlateHelper(
 ): PlateConfig {
   if (cfg.plates.length >= PLATE_LIMITS.MAX_PLATES) return cfg;
 
-  const idx = afterId
-    ? cfg.plates.findIndex((p) => p.id === afterId) + 1
-    : cfg.plates.length;
+  // default index = append at end
+  let idx = cfg.plates.length;
+
+  if (afterId) {
+    const found = cfg.plates.findIndex((p) => p.id === afterId);
+    if (found >= 0) {
+      idx = found + 1; // insert right after the given id
+    }
+  }
 
   const next = [...cfg.plates];
   const newPlate: PlateWithStatus = {
@@ -55,7 +61,6 @@ export function addPlateHelper(
   return { ...cfg, plates: next };
 }
 
-/** Mark a plate for removal (and remove after delay) */
 export function removePlateHelper(
   cfg: PlateConfig & { plates: PlateWithStatus[] },
   id: string,
