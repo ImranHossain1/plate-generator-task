@@ -44,9 +44,14 @@ export default function ConfigCard({
   const intl = useIntl();
 
   return (
-    <AppCard
-      title={intl.formatMessage({ id: "config.title" })}
-      action={
+    <AppCard title={intl.formatMessage({ id: "config.title" })}>
+      <MotifInput motifUrl={motifUrl} setCfg={setCfg} />
+
+      <div className="flex items-center justify-between mt-5 mb-2">
+        <h3 className="text-base font-medium">
+          <FormattedMessage id="config.inputs" />
+        </h3>
+
         <AppToggle<Unit>
           value={unit}
           onChange={setUnit}
@@ -56,13 +61,7 @@ export default function ConfigCard({
             { value: "inch", label: intl.formatMessage({ id: "units.inch" }) },
           ]}
         />
-      }
-    >
-      <MotifInput motifUrl={motifUrl} setCfg={setCfg} />
-
-      <h3 className="mt-5 mb-2">
-        <FormattedMessage id="config.inputs" />
-      </h3>
+      </div>
 
       <PlatesList
         plates={plates}

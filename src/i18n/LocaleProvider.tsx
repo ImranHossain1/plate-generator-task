@@ -20,7 +20,6 @@ function getInitialLocale(): Locale {
     // ignore storage errors, fall back to navigator
   }
 
-  // fall back to browser language
   if (
     typeof navigator !== "undefined" &&
     navigator.language?.startsWith("de")

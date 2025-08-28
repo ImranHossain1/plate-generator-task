@@ -7,6 +7,7 @@
   "preview.subtitle": "Platten sind proportional; das Motiv verläuft fortlaufend über alle Platten.",
   "preview.export": "PNG exportieren",
   "preview.url.tip": "Tipp: Erfordert eine CORS-fähige Bild-URL.",
+  "preview.url.error": "Bild konnte nicht geladen werden. Bitte überprüfe die URL.",
 
   "config.title": "Konfiguration",
   "config.imageUrl": "Motiv-Bild URL",
