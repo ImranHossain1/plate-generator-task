@@ -13,9 +13,21 @@ const MESSAGES: Record<Locale, Messages> = {
 };
 
 function getInitialLocale(): Locale {
-  const saved = localStorage.getItem("locale");
-  if (saved === "de" || saved === "en") return saved;
-  return navigator.language?.startsWith("de") ? "de" : "en";
+  try {
+    const saved = localStorage.getItem("locale");
+    if (saved === "de" || saved === "en") return saved;
+  } catch {
+    // ignore storage errors, fall back to navigator
+  }
+
+  // fall back to browser language
+  if (
+    typeof navigator !== "undefined" &&
+    navigator.language?.startsWith("de")
+  ) {
+    return "de";
+  }
+  return "en";
 }
 
 type LocaleProviderProps = {
