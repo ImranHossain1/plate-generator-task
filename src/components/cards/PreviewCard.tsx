@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { useIntl, FormattedMessage } from "react-intl";
+import { Plate, RenderMode } from "../../constants/plates";
 import PlateCanvas from "../plates/PlateCanvas";
-import Card from "../ui/Card";
-import Button from "../ui/Button";
-import type { Plate, RenderMode } from "@/constants/plates";
+import AppButton from "../common/AppButton";
+import AppCard from "../common/AppCard";
 
 type PlateWithStatus = Plate & { status?: "active" | "removing" };
 
@@ -34,15 +34,11 @@ export default function PreviewCard({
   );
 
   return (
-    <Card
+    <AppCard
       title={intl.formatMessage({ id: "preview.title" })}
       subtitle={intl.formatMessage({ id: "preview.subtitle" })}
-      right={
-        <Button onClick={exportPNG}>
-          <FormattedMessage id="preview.export" />
-        </Button>
-      }
-      className="h-[280px] sm:h-[360px] md:h-[460px] lg:h-[520px] flex flex-col"
+      action={<AppButton msgId="preview.export" onClick={exportPNG} />}
+      className="mb-5 md:h-[460px] lg:h-[520px]"
     >
       <div className="flex-1">
         <PlateCanvas
@@ -57,12 +53,12 @@ export default function PreviewCard({
 
       {imgErr && (
         <div className="px-1 pt-2 text-sm">
-          <div className="text-red-600">{imgErr}</div>
-          <div className="text-slate-500 mt-1">
+          <div className="text-destructive">{imgErr}</div>
+          <div className="mt-1 text-muted-foreground">
             <FormattedMessage id="preview.url.tip" />
           </div>
         </div>
       )}
-    </Card>
+    </AppCard>
   );
 }

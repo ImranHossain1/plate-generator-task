@@ -1,10 +1,10 @@
 import { useIntl, FormattedMessage } from "react-intl";
-import Card from "../ui/Card";
+import { Plate, PlateConfig } from "../../constants/plates";
 import MotifInput from "../plates/MotifInput";
 import PlatesList from "../plates/PlatesList";
 import PlatesActions from "../plates/PlatesActions";
-import ToggleButton from "../ui/ToggleButton";
-import type { Plate, PlateConfig } from "@/constants/plates";
+import AppToggle from "../common/AppToggle";
+import AppCard from "../common/AppCard";
 
 type Unit = "cm" | "inch";
 
@@ -44,49 +44,44 @@ export default function ConfigCard({
   const intl = useIntl();
 
   return (
-    <Card title={intl.formatMessage({ id: "config.title" })}>
+    <AppCard
+      title={intl.formatMessage({ id: "config.title" })}
+      action={
+        <AppToggle<Unit>
+          value={unit}
+          onChange={setUnit}
+          ariaLabel={intl.formatMessage({ id: "units.toggle" })}
+          options={[
+            { value: "cm", label: intl.formatMessage({ id: "units.cm" }) },
+            { value: "inch", label: intl.formatMessage({ id: "units.inch" }) },
+          ]}
+        />
+      }
+    >
       <MotifInput motifUrl={motifUrl} setCfg={setCfg} />
 
-      <div className="mt-5">
-        <div className="flex items-end justify-between">
-          <h3 className="text-base font-medium">
-            <FormattedMessage id="config.inputs" />
-          </h3>
+      <h3 className="mt-5 mb-2">
+        <FormattedMessage id="config.inputs" />
+      </h3>
 
-          <div className="flex justify-end mb-3">
-            <ToggleButton<Unit>
-              value={unit}
-              onChange={setUnit}
-              options={[
-                { value: "cm", label: intl.formatMessage({ id: "units.cm" }) },
-                {
-                  value: "inch",
-                  label: intl.formatMessage({ id: "units.inch" }),
-                },
-              ]}
-            />
-          </div>
-        </div>
+      <PlatesList
+        plates={plates}
+        recentlyAdded={recentlyAdded}
+        activeId={activeId}
+        setActiveId={setActiveId}
+        updatePlate={updatePlate}
+        removePlate={removePlate}
+        unit={unit}
+      />
 
-        <PlatesList
-          plates={plates}
-          recentlyAdded={recentlyAdded}
-          activeId={activeId}
-          setActiveId={setActiveId}
-          updatePlate={updatePlate}
-          removePlate={removePlate}
-          unit={unit}
-        />
-
-        <PlatesActions
-          plates={plates}
-          addPlate={addPlate}
-          resetToDefaults={resetToDefaults}
-          unit={unit}
-          totalWidth={totalWidth}
-          maxHeight={maxHeight}
-        />
-      </div>
-    </Card>
+      <PlatesActions
+        plates={plates}
+        addPlate={addPlate}
+        resetToDefaults={resetToDefaults}
+        unit={unit}
+        totalWidth={totalWidth}
+        maxHeight={maxHeight}
+      />
+    </AppCard>
   );
 }

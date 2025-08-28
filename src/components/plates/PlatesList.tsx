@@ -1,17 +1,17 @@
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import PlateRow from "./PlateRow";
-import type { Plate } from "@/constants/plates";
+import { Plate } from "../../constants/plates";
 
 type Unit = "cm" | "inch";
 
 type PlatesListProps = {
-  plates: (Plate & { status?: "removing" | "idle" })[],
-  recentlyAdded?: string | null,
-  activeId: string | null,
-  setActiveId: (id: string | null) => void,
-  updatePlate: (id: string, patch: Partial<Pick<Plate, "w" | "h">>) => void,
-  removePlate: (id: string) => void,
-  unit: Unit,
+  plates: (Plate & { status?: "removing" | "idle" })[];
+  recentlyAdded?: string | null;
+  activeId: string | null;
+  setActiveId: (id: string | null) => void;
+  updatePlate: (id: string, patch: Partial<Pick<Plate, "w" | "h">>) => void;
+  removePlate: (id: string) => void;
+  unit: Unit;
 };
 
 export default function PlatesList({

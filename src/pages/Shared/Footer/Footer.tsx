@@ -1,14 +1,19 @@
+import { Separator } from "@radix-ui/react-separator";
 import { FormattedMessage } from "react-intl";
 
-const Footer = () => {
+export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300 py-8">
-      <div className="border-gray-700 pt-6 text-center text-sm text-gray-300">
-        © {new Date().getFullYear()}{" "}
-        <FormattedMessage id="footer.text" values={{ name: "Imran Hossain" }} />
+    <footer className="w-full border-t bg-background">
+      <div className="container mx-auto flex flex-col items-center justify-center gap-4 py-6">
+        <Separator className="hidden w-full md:block" />
+        <p className="text-center text-sm text-muted-foreground">
+          © {new Date().getFullYear()}{" "}
+          <FormattedMessage
+            id="footer.text"
+            values={{ name: "Imran Hossain" }}
+          />
+        </p>
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}
