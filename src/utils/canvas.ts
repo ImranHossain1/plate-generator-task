@@ -1,4 +1,14 @@
-export function roundedRect(ctx, x, y, w, h, r) {
+/**
+ * Draws a rounded rectangle path onto the canvas context.
+ */
+export function roundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+): void {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + w - r, y);
@@ -11,10 +21,20 @@ export function roundedRect(ctx, x, y, w, h, r) {
   ctx.quadraticCurveTo(x, y, x + r, y);
 }
 
-export function hatch(ctx, x, y, w, h) {
-  ctx.fillStyle = "#e2e8f0";
+/**
+ * Fills a rectangle with a hatch (diagonal stripe) pattern.
+ */
+export function hatch(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number
+): void {
+  ctx.fillStyle = "#e2e8f0"; // background fill
   ctx.fillRect(x, y, w, h);
-  ctx.strokeStyle = "#cbd5e1";
+
+  ctx.strokeStyle = "#cbd5e1"; // hatch lines
   for (let i = -h; i < w + h; i += 8) {
     ctx.beginPath();
     ctx.moveTo(x + i, y);

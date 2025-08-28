@@ -1,9 +1,23 @@
 import { useEffect, useState } from "react";
-import { useIntl } from "react-intl";
-import { parseLocaleNumber } from "../../utils/number.js";
-import { PLATE_LIMITS } from "../../constants/plates.js";
-import Button from "../ui/Button.jsx";
-import PlateField from "./PlateField.jsx";
+import { PLATE_LIMITS, type Plate } from "@/constants/plates";
+import Button from "../ui/Button";
+import PlateField from "./PlateField";
+import { parseLocaleNumber } from "@/utils/number";
+
+type Unit = "cm" | "inch";
+
+type PlateRowProps = {
+  plate: Plate;
+  index: number;
+  isActive?: boolean;
+  onSelect?: () => void;
+  onChange: (patch: Partial<Pick<Plate, "w" | "h">>) => void;
+  onRemove: () => void;
+  canRemove: boolean;
+  unit: Unit;
+  recentlyAdded?: string | null; // optional if you pass it down
+  recentlyRemoved?: string | null; // optional if you pass it down
+};
 
 export default function PlateRow({
   plate,
@@ -14,20 +28,19 @@ export default function PlateRow({
   onRemove,
   canRemove,
   unit,
-}) {
-  const intl = useIntl();
-
+}: PlateRowProps) {
   // helpers
-  const cmToUnit = (cm) =>
+  const cmToUnit = (cm: number) =>
     unit === "cm" ? cm : Math.round((cm / 2.54) * 100) / 100;
-  const unitToCm = (val) => (unit === "cm" ? val : val * 2.54);
 
-  const [wDraft, setWDraft] = useState(String(cmToUnit(plate.w)));
-  const [hDraft, setHDraft] = useState(String(cmToUnit(plate.h)));
-  const [wError, setWError] = useState("");
-  const [hError, setHError] = useState("");
+  const unitToCm = (val: number) => (unit === "cm" ? val : val * 2.54);
 
-  // keep drafts in sync if plate values or unit change (inline logic to satisfy exhaustive-deps)
+  const [wDraft, setWDraft] = useState<string>(String(cmToUnit(plate.w)));
+  const [hDraft, setHDraft] = useState<string>(String(cmToUnit(plate.h)));
+  const [wError, setWError] = useState<string>("");
+  const [hError, setHError] = useState<string>("");
+
+  // keep drafts in sync if plate values or unit change
   useEffect(() => {
     const val =
       unit === "cm" ? plate.w : Math.round((plate.w / 2.54) * 100) / 100;
@@ -46,33 +59,22 @@ export default function PlateRow({
     setHError("");
   }, [unit, plate.w, plate.h]);
 
-  const fmt2 = (n) =>
-    intl.formatNumber(n, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-
-  const validate = (val, min, max) => {
+  const validate = (
+    val: string,
+    min: number,
+    max: number
+  ): { ok: true; numCm: number } | { ok: false; err: string } => {
     const num = parseLocaleNumber(val);
-    if (Number.isNaN(num)) {
-      return { ok: false, err: intl.formatMessage({ id: "errors.notNumber" }) };
-    }
+    if (Number.isNaN(num)) return { ok: false, err: "Not a number" };
 
-    // compare in cm (internal source of truth)
+    // compare in cm (internal source of truth); clamp to 2 decimals of cm
     const numCm = parseFloat(unitToCm(num).toFixed(2));
     if (numCm < min || numCm > max) {
       return {
         ok: false,
-        err: intl.formatMessage(
-          { id: "errors.range" },
-          {
-            min: fmt2(cmToUnit(min)),
-            max: fmt2(cmToUnit(max)),
-            unit: intl.formatMessage({
-              id: unit === "cm" ? "units.cm" : "units.inch",
-            }),
-          }
-        ),
+        err: `Must be between ${cmToUnit(min).toFixed(2)}–${cmToUnit(
+          max
+        ).toFixed(2)} ${unit}`,
       };
     }
     return { ok: true, numCm };
@@ -126,7 +128,7 @@ export default function PlateRow({
             onRemove();
           }}
           disabled={!canRemove}
-          title={intl.formatMessage({ id: "plate.remove" })}
+          title="Remove"
         >
           -
         </Button>
@@ -152,7 +154,7 @@ export default function PlateRow({
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
           <PlateField
-            label={intl.formatMessage({ id: "plate.width" })}
+            label="Breite"
             min={PLATE_LIMITS.MIN_W}
             max={PLATE_LIMITS.MAX_W}
             draft={wDraft}
@@ -163,7 +165,7 @@ export default function PlateRow({
             unit={unit}
           />
           <PlateField
-            label={intl.formatMessage({ id: "plate.height" })}
+            label="Höhe"
             min={PLATE_LIMITS.MIN_H}
             max={PLATE_LIMITS.MAX_H}
             draft={hDraft}
@@ -185,7 +187,7 @@ export default function PlateRow({
               onRemove();
             }}
             disabled={!canRemove}
-            title={intl.formatMessage({ id: "plate.remove" })}
+            title="Remove"
           >
             -
           </Button>
