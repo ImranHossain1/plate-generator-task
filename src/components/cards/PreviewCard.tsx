@@ -53,7 +53,9 @@ export default function PreviewCard({
 
       {imgErr && (
         <div className="px-1 pt-2 text-sm">
-          <div className="text-destructive">{imgErr}</div>
+          <div className="text-destructive">
+            <FormattedMessage id="preview.url.error" />
+          </div>
           <div className="mt-1 text-muted-foreground">
             <FormattedMessage id="preview.url.tip" />
           </div>

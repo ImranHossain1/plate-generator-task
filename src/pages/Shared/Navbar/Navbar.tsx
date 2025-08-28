@@ -31,7 +31,7 @@ export default function Navbar() {
             { value: "en", label: intl.formatMessage({ id: "nav.lang.en" }) },
             { value: "de", label: intl.formatMessage({ id: "nav.lang.de" }) },
           ]}
-          className="rounded-md border" // optional; kept for consistency
+          className="rounded-md border"
         />
       </div>
     </header>
