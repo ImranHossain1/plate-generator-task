@@ -1,21 +1,19 @@
-// src/components/plates/PlateField.tsx
-import React from "react";
-import TextField from "../ui/TextField"; // if your file is TextField.tsx
-import { parseLocaleNumber } from "@/utils/number";
-// If still JS for now, you can keep: import TextField from "../ui/TextField.jsx";
+import { parseLocaleNumber } from "../../utils/number";
+import { Label } from "@radix-ui/react-label";
+import { Input } from "../ui/input";
 
 type Unit = "cm" | "inch";
 
 type PlateFieldProps = {
-  label: React.ReactNode,
-  min: number, // boundaries in cm
-  max: number, // boundaries in cm
-  draft: string, // controlled input value as text
-  error?: string | null,
-  onChange: React.ChangeEventHandler<HTMLInputElement>,
-  onBlur?: React.FocusEventHandler<HTMLInputElement>,
-  isActive?: boolean,
-  unit: Unit,
+  label: React.ReactNode;
+  min: number;
+  max: number;
+  draft: string;
+  error?: string | null;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
+  isActive?: boolean;
+  unit: Unit;
 };
 
 export default function PlateField({
@@ -44,9 +42,11 @@ export default function PlateField({
   return (
     <div>
       {isActive && (
-        <div className="flex justify-between items-baseline mb-1">
-          <span className="text-xs font-medium text-slate-600">{label}</span>
-          <span className="text-[10px] text-slate-400">
+        <div className="mb-1 flex items-baseline justify-between">
+          <Label className="text-xs font-medium text-foreground/80">
+            {label}
+          </Label>
+          <span className="text-[10px] text-muted-foreground">
             {unit === "cm"
               ? `${min} – ${max} cm`
               : `${toInch2(min)} – ${toInch2(max)} inch`}
@@ -54,25 +54,39 @@ export default function PlateField({
         </div>
       )}
 
-      <TextField
-        label={null}
-        value={draft}
-        onChange={onChange}
-        onBlur={onBlur}
-        inputMode="decimal"
-        rightAddon={unit}
-        className="rounded-lg"
-      />
+      {/* Input with right addon for unit */}
+      <div className="relative">
+        <Input
+          value={draft}
+          onChange={onChange}
+          onBlur={onBlur}
+          inputMode="decimal"
+          className={[
+            "rounded-lg pr-14", // space for unit addon
+            error ? "border-destructive focus-visible:ring-destructive" : "",
+          ].join(" ")}
+          aria-invalid={!!error}
+          aria-describedby={error ? "platefield-error" : undefined}
+        />
+        <span
+          className="pointer-events-none absolute inset-y-0 right-0 grid place-items-center
+                     rounded-r-lg border-l bg-muted px-3 text-xs text-muted-foreground"
+        >
+          {unit}
+        </span>
+      </div>
 
       <div className="mt-1">
         {error ? (
-          <div className="text-xs text-red-600">{error}</div>
+          <p id="platefield-error" className="text-xs text-destructive">
+            {error}
+          </p>
         ) : (
           isActive &&
           mm && (
-            <div className="text-[10px] text-slate-400 text-center">
+            <p className="text-center text-[10px] text-muted-foreground">
               {mm} mm
-            </div>
+            </p>
           )
         )}
       </div>

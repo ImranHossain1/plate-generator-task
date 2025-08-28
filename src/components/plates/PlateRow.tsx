@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { useIntl, type PrimitiveType } from "react-intl";
-import { PLATE_LIMITS, type Plate } from "@/constants/plates";
-import Button from "../ui/Button";
 import PlateField from "./PlateField";
-import { parseLocaleNumber } from "@/utils/number";
+import { parseLocaleNumber } from "../../utils/number";
+import { Plate, PLATE_LIMITS } from "../../constants/plates";
+import { Badge } from "../ui/badge";
+import { Card, CardContent } from "../ui/Card";
+import AppButton from "../common/AppButton";
 
 type IntlValues = Record<string, PrimitiveType>;
-
 type ErrorMsg = { id: string; values?: IntlValues } | null;
-
 type Unit = "cm" | "inch";
 
 type PlateRowProps = {
@@ -36,7 +36,6 @@ export default function PlateRow({
 }: PlateRowProps) {
   const intl = useIntl();
 
-  // helpers
   const cmToUnit = (cm: number) =>
     unit === "cm" ? cm : Math.round((cm / 2.54) * 100) / 100;
 
@@ -47,7 +46,6 @@ export default function PlateRow({
   const [wError, setWError] = useState<ErrorMsg>(null);
   const [hError, setHError] = useState<ErrorMsg>(null);
 
-  // keep drafts in sync if plate values or unit change
   useEffect(() => {
     const val =
       unit === "cm" ? plate.w : Math.round((plate.w / 2.54) * 100) / 100;
@@ -81,7 +79,6 @@ export default function PlateRow({
       return { ok: false, err: { id: "errors.notNumber" } };
     }
 
-    // compare in cm (internal source of truth); clamp to 2 decimals of cm
     const numCm = parseFloat(unitToCm(num).toFixed(2));
     if (numCm < min || numCm > max) {
       return {
@@ -134,93 +131,90 @@ export default function PlateRow({
 
   return (
     <div className="relative">
-      {/* Mobile-only index badge */}
-      <div
-        className={`absolute -top-2 -left-2 w-5 h-5 flex items-center justify-center rounded-full text-xs font-semibold select-none md:hidden z-10
-        ${
-          isActive
-            ? "bg-slate-900 text-white"
-            : "bg-white text-slate-900 border border-slate-900"
-        }`}
+      {/* Mobile index badge (shadcn Badge) */}
+      <Badge
+        variant={isActive ? "default" : "outline"}
+        className="absolute -top-2 -left-2 z-10 h-5 w-5 select-none items-center justify-center p-0 text-center text-xs font-semibold md:hidden"
       >
         {index + 1}
-      </div>
+      </Badge>
 
-      {/* Mobile-only remove button */}
-      <div className="absolute -top-2 -right-2 md:hidden z-10">
-        <Button
-          variant="danger"
-          className="h-5 w-5 rounded-full p-0 text-xs leading-none bg-rose-50"
+      {/* Mobile remove */}
+      <div className="absolute -top-2 -right-2 z-10 md:hidden">
+        <AppButton
+          variant="destructive"
+          size="icon"
+          className="h-5 w-5 rounded-full p-0 text-xs leading-none"
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
           }}
           disabled={!canRemove}
           title={intl.formatMessage({ id: "plate.remove" })}
-        >
-          -
-        </Button>
+          icon="–"
+        />
       </div>
 
-      <div
-        className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border border-gray-200 bg-gray-100 p-3 shadow-sm relative"
-        onClick={onSelect}
+      <Card
         role="button"
         tabIndex={0}
+        onClick={onSelect}
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelect?.()}
+        className={`relative shadow-sm transition-colors ${
+          isActive ? "ring-1 ring-ring" : ""
+        }`}
       >
-        {/* Desktop index indicator */}
-        <div
-          className={`hidden md:flex h-9 w-9 items-center justify-center rounded-lg text-xs font-semibold select-none ${
-            isActive
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-900 border border-slate-900"
-          }`}
-        >
-          {index + 1}
-        </div>
-
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-          <PlateField
-            label={intl.formatMessage({ id: "plate.width" })}
-            min={PLATE_LIMITS.MIN_W}
-            max={PLATE_LIMITS.MAX_W}
-            draft={wDraft}
-            error={wErrorText}
-            onChange={(e) => setWDraft(e.target.value)}
-            onBlur={handleBlurW}
-            isActive={isActive}
-            unit={unit}
-          />
-          <PlateField
-            label={intl.formatMessage({ id: "plate.height" })}
-            min={PLATE_LIMITS.MIN_H}
-            max={PLATE_LIMITS.MAX_H}
-            draft={hDraft}
-            error={hErrorText}
-            onChange={(e) => setHDraft(e.target.value)}
-            onBlur={handleBlurH}
-            isActive={isActive}
-            unit={unit}
-          />
-        </div>
-
-        {/* Desktop remove button */}
-        <div className="hidden md:flex items-center gap-1 self-center">
-          <Button
-            variant="danger"
-            className="h-7 w-7 rounded-full p-0 text-sm leading-none bg-rose-50"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove();
-            }}
-            disabled={!canRemove}
-            title={intl.formatMessage({ id: "plate.remove" })}
+        <CardContent className="grid grid-cols-[auto_1fr_auto] items-center gap-4 p-4">
+          {/* Desktop index badge */}
+          <Badge
+            variant={isActive ? "default" : "outline"}
+            className="hidden h-9 w-9 select-none items-center justify-center rounded-lg p-0 text-xs font-semibold md:flex"
           >
-            -
-          </Button>
-        </div>
-      </div>
+            {index + 1}
+          </Badge>
+
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+            <PlateField
+              label={intl.formatMessage({ id: "plate.width" })}
+              min={PLATE_LIMITS.MIN_W}
+              max={PLATE_LIMITS.MAX_W}
+              draft={wDraft}
+              error={wErrorText}
+              onChange={(e) => setWDraft(e.target.value)}
+              onBlur={handleBlurW}
+              isActive={isActive}
+              unit={unit}
+            />
+            <PlateField
+              label={intl.formatMessage({ id: "plate.height" })}
+              min={PLATE_LIMITS.MIN_H}
+              max={PLATE_LIMITS.MAX_H}
+              draft={hDraft}
+              error={hErrorText}
+              onChange={(e) => setHDraft(e.target.value)}
+              onBlur={handleBlurH}
+              isActive={isActive}
+              unit={unit}
+            />
+          </div>
+
+          {/* Desktop remove */}
+          <div className="hidden items-center self-center md:flex">
+            <AppButton
+              variant="destructive"
+              size="icon"
+              className="h-7 w-7 rounded-full p-0 text-sm leading-none"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+              disabled={!canRemove}
+              title={intl.formatMessage({ id: "plate.remove" })}
+              icon="–"
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

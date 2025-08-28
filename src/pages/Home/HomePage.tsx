@@ -1,17 +1,30 @@
 import { useEffect, useRef, useState } from "react";
-import usePersistentState from "@/hooks/usePersistentState";
-import useImage from "@/hooks/useImage";
+import usePersistentState from "../../hooks/usePersistentState";
 import {
   DEFAULT_PLATE_CONFIG,
-  type Plate,
-  type PlateConfig,
-  type RenderMode,
-} from "@/constants/plates";
-
-
-import PreviewCard from "@/components/cards/PreviewCard";
-import ConfigCard from "@/components/cards/ConfigCard";
-import { addPlateHelper, computePlateStats, exportPNGHelper, removePlateHelper, resetConfigHelper, updatePlateHelper } from "@/utils/plates";
+  Plate,
+  PlateConfig,
+  RenderMode,
+} from "../../constants/plates";
+import useImage from "../../hooks/useImage";
+import {
+  addPlateHelper,
+  computePlateStats,
+  exportPNGHelper,
+  removePlateHelper,
+  resetConfigHelper,
+  updatePlateHelper,
+} from "../../utils/plates";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
+import PreviewCard from "../../components/cards/PreviewCard";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
+import ConfigCard from "../../components/cards/ConfigCard";
+import { Separator } from "../../components/ui/separator";
 
 type Unit = "cm" | "inch";
 
@@ -21,12 +34,12 @@ export default function HomePage() {
     DEFAULT_PLATE_CONFIG
   );
   const { plates, motifUrl, renderMode } = cfg;
-
   const { img, error: imgErr } = useImage(motifUrl);
 
   const [recentlyAdded, setRecentlyAdded] = useState<string | null>(null);
-  const [activeId, setActiveId] = useState<string | null>(plates[0]?.id ?? null);
-
+  const [activeId, setActiveId] = useState<string | null>(
+    plates[0]?.id ?? null
+  );
   const [unit, setUnit] = useState<Unit>("cm");
 
   useEffect(() => {
@@ -35,7 +48,7 @@ export default function HomePage() {
     }
   }, [plates, activeId]);
 
-  const { totalWidth, maxHeight } = computePlateStats(plates); // -> { totalWidth: number, maxHeight: number }
+  const { totalWidth, maxHeight } = computePlateStats(plates);
 
   const updatePlate = (id: string, patch: Partial<Pick<Plate, "w" | "h">>) =>
     setCfg((s) => updatePlateHelper(s, id, patch));
@@ -45,7 +58,7 @@ export default function HomePage() {
 
   const removePlate = (id: string) => removePlateHelper(cfg, id, setCfg);
 
-  // Canvas ref for export
+  // export
   const exportCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const handleCanvasRef = (c: HTMLCanvasElement | null) => {
     exportCanvasRef.current = c;
@@ -55,9 +68,41 @@ export default function HomePage() {
   const resetToDefaults = () => setCfg(resetConfigHelper());
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="grid gap-6 md:grid-cols-[1fr_480px]">
-        {/* Left: Preview */}
+    <div className="container mx-auto max-w-7xl">
+      {/* Mobile: Tabs */}
+      <div className="md:hidden">
+        <PreviewCard
+          plates={plates}
+          img={img}
+          imgErr={imgErr}
+          renderMode={renderMode as RenderMode}
+          handleCanvasRef={handleCanvasRef}
+          recentlyAdded={recentlyAdded}
+          exportPNG={exportPNG}
+        />
+
+        <div className="">
+          <ConfigCard
+            plates={plates}
+            motifUrl={motifUrl}
+            setCfg={setCfg}
+            totalWidth={totalWidth}
+            maxHeight={maxHeight}
+            recentlyAdded={recentlyAdded}
+            activeId={activeId}
+            setActiveId={setActiveId}
+            updatePlate={updatePlate}
+            removePlate={removePlate}
+            addPlate={addPlate}
+            resetToDefaults={resetToDefaults}
+            unit={unit}
+            setUnit={setUnit}
+          />
+        </div>
+      </div>
+
+      {/* Desktop: two-column layout */}
+      <div className="hidden gap-6 md:grid md:grid-cols-[1fr_480px]">
         <div className="min-w-0">
           <PreviewCard
             plates={plates}
@@ -70,7 +115,6 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Right: Config */}
         <div className="w-full md:w-[480px] md:flex-none">
           <ConfigCard
             plates={plates}

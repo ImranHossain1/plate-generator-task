@@ -1,18 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Plate, RenderMode } from "@/constants/plates";
+import { Plate, RenderMode } from "../../constants/plates";
+import { Card, CardContent } from "../ui/Card";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
+import AppCard from "../common/AppCard";
 
-type PlateCanvasProps = {
-  plates: Plate[];
-  img: HTMLImageElement | null; // loaded image from your useImage hook
-  renderMode: RenderMode;       // "cover" | "contain" | "tile"
-  onCanvasRef?: (el: HTMLCanvasElement | null) => void;
-  recentlyAdded?: string | null;   // plate id
-  recentlyRemoved?: string | null; // plate id
-};
+const PAD = 24;
+const ANIM_MS = 500;
+const EPS = 0.01;
 
 type ResizeChange = { id: string; type: "grow" | "shrink" };
-
-// Draw with source clamping while preserving destination alignment.
 function drawImageClamped(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement | HTMLCanvasElement,
@@ -25,8 +21,6 @@ function drawImageClamped(
   dw: number,
   dh: number
 ) {
-  const EPS = 0.01;
-
   const imgW = img.width;
   const imgH = img.height;
 
@@ -51,10 +45,19 @@ function drawImageClamped(
 
   if (adjDw < EPS || adjDh < EPS) return;
 
-  ctx.drawImage(img, sxa, sya, clampedSW, clampedSH, adjDx, adjDy, adjDw, adjDh);
+  ctx.drawImage(
+    img,
+    sxa,
+    sya,
+    clampedSW,
+    clampedSH,
+    adjDx,
+    adjDy,
+    adjDw,
+    adjDh
+  );
 }
 
-// simple hatch fallback
 function hatch(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -78,6 +81,49 @@ function hatch(
   ctx.restore();
 }
 
+function getCoverSrcRect(
+  imgW: number,
+  imgH: number,
+  destW: number,
+  destH: number,
+  mode: RenderMode
+) {
+  const srcRatio = imgW / imgH;
+  const destRatio = destW / destH;
+
+  if (mode === "contain") {
+    if (destRatio > srcRatio) {
+      const w = imgH * destRatio;
+      const x = (imgW - w) / 2;
+      return { x, y: 0, w, h: imgH };
+    } else {
+      const h = imgW / destRatio;
+      const y = (imgH - h) / 2;
+      return { x: 0, y, w: imgW, h };
+    }
+  }
+
+  // cover
+  if (destRatio > srcRatio) {
+    const h = imgW / destRatio;
+    const y = (imgH - h) / 2;
+    return { x: 0, y, w: imgW, h };
+  } else {
+    const w = imgH * destRatio;
+    const x = (imgW - w) / 2;
+    return { x, y: 0, w, h: imgH };
+  }
+}
+
+type PlateCanvasProps = {
+  plates: Plate[];
+  img: HTMLImageElement | null;
+  renderMode: RenderMode;
+  onCanvasRef?: (el: HTMLCanvasElement | null) => void;
+  recentlyAdded?: string | null;
+  recentlyRemoved?: string | null;
+};
+
 export default function PlateCanvas({
   plates,
   img,
@@ -87,8 +133,6 @@ export default function PlateCanvas({
   recentlyRemoved = null,
 }: PlateCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-
   const [resizedPlates, setResizedPlates] = useState<ResizeChange[]>([]);
   const prevPlatesRef = useRef<Plate[]>([]);
 
@@ -103,21 +147,23 @@ export default function PlateCanvas({
 
   // expose canvas to parent
   useEffect(() => {
-    if (typeof onCanvasRef === "function") onCanvasRef(canvasRef.current);
+    onCanvasRef?.(canvasRef.current);
   }, [onCanvasRef]);
 
   // detect width/height changes for resize animation
   useEffect(() => {
     const prev = prevPlatesRef.current;
     const changes: ResizeChange[] = [];
-    plates.forEach((p) => {
+
+    for (const p of plates) {
       const prevP = prev.find((x) => x.id === p.id);
       if (prevP && (prevP.w !== p.w || prevP.h !== p.h)) {
         const bigger = p.w > prevP.w || p.h > prevP.h;
         changes.push({ id: p.id, type: bigger ? "grow" : "shrink" });
       }
-    });
-    if (changes.length > 0) {
+    }
+
+    if (changes.length) {
       setResizedPlates(changes);
       const t = setTimeout(() => setResizedPlates([]), 600);
       return () => clearTimeout(t);
@@ -127,92 +173,51 @@ export default function PlateCanvas({
 
   // Build a mirrored source when total width > 300 cm
   const { sourceImg, sW, sH } = useMemo(() => {
-    const ready = img && img.width > 0 && img.height > 0;
+    const ready = !!img && img.width > 0 && img.height > 0;
     const needsMirror = totalWidth > 300 && ready;
+
     if (!needsMirror || !img) {
-      return { sourceImg: img as HTMLImageElement | HTMLCanvasElement | null, sW: img?.width ?? 0, sH: img?.height ?? 0 };
+      return {
+        sourceImg: img as HTMLImageElement | HTMLCanvasElement | null,
+        sW: img?.width ?? 0,
+        sH: img?.height ?? 0,
+      };
     }
-    // Make a 2× wide stripe: [img | mirrored img]
+
     const stripe = document.createElement("canvas");
     stripe.width = img.width * 2;
     stripe.height = img.height;
     const sctx = stripe.getContext("2d")!;
-    // left: original
     sctx.drawImage(img, 0, 0);
-    // right: mirrored
     sctx.save();
-    sctx.translate(stripe.width, 0); // move to right edge
-    sctx.scale(-1, 1); // flip horizontally
-    sctx.drawImage(img, 0, 0); // draw from (0,0) in flipped space
+    sctx.translate(stripe.width, 0);
+    sctx.scale(-1, 1);
+    sctx.drawImage(img, 0, 0);
     sctx.restore();
-    return { sourceImg: stripe as HTMLCanvasElement, sW: stripe.width, sH: stripe.height };
+
+    return {
+      sourceImg: stripe as HTMLCanvasElement,
+      sW: stripe.width,
+      sH: stripe.height,
+    };
   }, [img, totalWidth]);
 
+  // Renderer
   useEffect(() => {
     const canvas = canvasRef.current;
-    const wrap = wrapRef.current;
-    if (!canvas || !wrap) return;
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const cmW = Math.max(1, totalWidth);
-    const cmH = Math.max(1, maxHeight);
-    const pad = 24;
+    // Pixel size: 1 cm -> 1 px, pad around
+    const pxW = Math.max(1, Math.round(totalWidth));
+    const pxH = Math.max(1, Math.round(maxHeight));
 
-    // 1 cm == 1 px (we’ll scale down only for fitting)
-    const scale = 1;
-
-    // Canvas pixel size
-    const pxW = Math.max(1, Math.round(cmW * scale));
-    const pxH = Math.max(1, Math.round(cmH * scale));
-
-    canvas.width = pxW + pad * 2;
-    canvas.height = pxH + pad * 2;
-
-    // Center the canvas when it fits, otherwise left-align & scroll
-    const fits = canvas.width <= wrap.clientWidth;
-    wrap.style.justifyContent = fits ? "center" : "flex-start";
-    wrap.style.overflowX = fits ? "hidden" : "auto";
-    if (!fits) wrap.scrollLeft = 0;
+    canvas.width = pxW + PAD * 2;
+    canvas.height = pxH + PAD * 2;
 
     let start: number | null = null;
-    const duration = 500;
-    let animationFrame = 0;
-
-    function getCoverSrcRect(
-      imgW: number,
-      imgH: number,
-      destW: number,
-      destH: number,
-      mode: RenderMode
-    ) {
-      const srcRatio = imgW / imgH;
-      const destRatio = destW / destH;
-
-      if (mode === "contain") {
-        // fit the whole image inside, center remainder
-        if (destRatio > srcRatio) {
-          const newW = imgH * destRatio;
-          const xOff = (imgW - newW) / 2;
-          return { x: xOff, y: 0, w: newW, h: imgH };
-        } else {
-          const newH = imgW / destRatio;
-          const yOff = (imgH - newH) / 2;
-          return { x: 0, y: yOff, w: imgW, h: newH };
-        }
-      }
-
-      // cover: fill destination, cropping from center outward
-      if (destRatio > srcRatio) {
-        const newH = imgW / destRatio;
-        const yOff = (imgH - newH) / 2;
-        return { x: 0, y: yOff, w: imgW, h: newH };
-      } else {
-        const newW = imgH * destRatio;
-        const xOff = (imgW - newW) / 2;
-        return { x: xOff, y: 0, w: newW, h: imgH };
-      }
-    }
+    let raf = 0;
 
     const hasSource = !!sourceImg && sW > 0 && sH > 0;
     const globalSrc =
@@ -220,21 +225,22 @@ export default function PlateCanvas({
         ? getCoverSrcRect(sW, sH, pxW, pxH, renderMode)
         : null;
 
-    const drawFrame = (timestamp: number) => {
-      if (!start) start = timestamp;
-      const progress = Math.min(1, (timestamp - start) / duration);
+    const draw = (ts: number) => {
+      if (start == null) start = ts;
+      const progress = Math.min(1, (ts - start) / ANIM_MS);
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#f8fafc";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       let cursorX = 0;
-      plates.forEach((p) => {
+
+      for (const p of plates) {
         const gap = 4;
-        const w = (Number(p.w) || 0) * scale;
-        const h = (Number(p.h) || 0) * scale;
-        const x = pad + cursorX;
-        const y = pad + (pxH - h);
+        const w = Number(p.w) || 0;
+        const h = Number(p.h) || 0;
+        const x = PAD + cursorX;
+        const y = PAD + (pxH - h);
 
         let alpha = 1;
         let drawW = w - gap;
@@ -278,9 +284,9 @@ export default function PlateCanvas({
               hatch(ctx, x, y + (h - drawH), drawW, drawH);
             }
           } else if (globalSrc) {
-            // Map this plate’s “window” inside the full composition
-            const fx = cursorX / pxW;      // left fraction
-            const fy = (pxH - h) / pxH;    // bottom-aligned -> top fraction
+            // Map this plate’s slice within the full composition
+            const fx = cursorX / pxW; // left fraction
+            const fy = (pxH - h) / pxH; // top fraction (bottom-aligned)
             const fw = drawW / pxW;
             const fh = drawH / pxH;
 
@@ -308,20 +314,17 @@ export default function PlateCanvas({
 
         ctx.restore();
         cursorX += w;
-      });
+      }
 
       if (progress < 1) {
-        animationFrame = requestAnimationFrame(drawFrame);
+        raf = requestAnimationFrame(draw);
       }
     };
 
-    const id = requestAnimationFrame(drawFrame);
-    animationFrame = id;
-
-    return () => cancelAnimationFrame(animationFrame);
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
   }, [
     plates,
-    img,
     sourceImg,
     sW,
     sH,
@@ -334,14 +337,12 @@ export default function PlateCanvas({
   ]);
 
   return (
-    <div
-      ref={wrapRef}
-      className="relative w-full h-[320px] sm:h-[420px] md:h-[520px]
-                 rounded-xl bg-slate-50 border border-slate-200
-                 overflow-x-auto overflow-y-hidden
-                 flex items-center justify-start"
-    >
-      <canvas ref={canvasRef} className="block" />
-    </div>
+    <AppCard className="overflow-hidden" contentClassName="p-0">
+      <ScrollArea>
+        <div className="min-w-full">
+          <canvas ref={canvasRef} />
+        </div>
+      </ScrollArea>
+    </AppCard>
   );
 }

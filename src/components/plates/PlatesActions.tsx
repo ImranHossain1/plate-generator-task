@@ -1,20 +1,17 @@
-import Button from "../ui/Button";
-import { PLATE_LIMITS, type Plate } from "@/constants/plates";
+import { FormattedMessage, FormattedNumber } from "react-intl";
+import { PLATE_LIMITS } from "../../constants/plates";
+import AppButton from "../common/AppButton";
 
 type Unit = "cm" | "inch";
 
 type PlatesActionsProps = {
-  plates: Plate[],
-  addPlate: () => void,
-  resetToDefaults: () => void,
-  unit: Unit,
-  totalWidth: number, // in cm
-  maxHeight: number, // in cm
+  plates: unknown[];
+  addPlate: () => void;
+  resetToDefaults: () => void;
+  unit: Unit;
+  totalWidth: number;
+  maxHeight: number;
 };
-
-const toUnit = (cm: number, unit: Unit) => (unit === "cm" ? cm : cm / 2.54);
-
-const fmt2 = (n: number) => n.toFixed(2);
 
 export default function PlatesActions({
   plates,
@@ -24,36 +21,49 @@ export default function PlatesActions({
   totalWidth,
   maxHeight,
 }: PlatesActionsProps) {
-  const atLimit = plates.length >= PLATE_LIMITS.MAX_PLATES;
+  const atMax = plates.length >= PLATE_LIMITS.MAX_PLATES;
 
   return (
     <>
       <div className="mt-5 flex flex-col gap-2 w-full md:flex-row md:justify-end">
-        <Button
+        <AppButton
+          msgId="config.add"
           onClick={addPlate}
-          disabled={atLimit}
+          disabled={atMax}
           variant="success"
-          className="w-full md:w-auto"
-          title={atLimit ? "Maximale Anzahl erreicht" : undefined}
-        >
-          Rückwand hinzufügen{" "}
-          <span aria-hidden className="text-base leading-none">
-            +
-          </span>
-        </Button>
+          icon={
+            <span aria-hidden className="text-base leading-none">
+              +
+            </span>
+          }
+        />
 
-        <Button
-          variant="danger"
+        <AppButton
+          msgId="config.reset"
           onClick={resetToDefaults}
-          className="w-full mt-2 md:mt-0 md:w-auto"
-        >
-          Zurücksetzen
-        </Button>
+          variant="destructive"
+        />
       </div>
 
       <div className="mt-2 text-xs text-slate-500 text-center md:text-left">
-        Total width: <b>{fmt2(toUnit(totalWidth, unit))}</b> {unit} · Max
-        height: <b>{fmt2(toUnit(maxHeight, unit))}</b> {unit}
+        <FormattedMessage id="config.total" />:{" "}
+        <b>
+          <FormattedNumber
+            value={unit === "cm" ? totalWidth : totalWidth / 2.54}
+            minimumFractionDigits={2}
+            maximumFractionDigits={2}
+          />
+        </b>{" "}
+        <FormattedMessage id={unit === "cm" ? "units.cm" : "units.inch"} /> ·{" "}
+        <FormattedMessage id="config.maxHeight" />:{" "}
+        <b>
+          <FormattedNumber
+            value={unit === "cm" ? maxHeight : maxHeight / 2.54}
+            minimumFractionDigits={2}
+            maximumFractionDigits={2}
+          />
+        </b>{" "}
+        <FormattedMessage id={unit === "cm" ? "units.cm" : "units.inch"} />
       </div>
     </>
   );

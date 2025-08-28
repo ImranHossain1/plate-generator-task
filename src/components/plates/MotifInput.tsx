@@ -1,7 +1,7 @@
-import React from "react";
 import { FormattedMessage } from "react-intl";
-import Button from "../ui/Button";
-import type { PlateConfig } from "@/constants/plates";
+import { PlateConfig } from "../../constants/plates";
+import AppButton from "../common/AppButton";
+import { Input } from "../ui/input";
 
 type MotifInputProps = {
   motifUrl: string;
@@ -15,17 +15,15 @@ export default function MotifInput({ motifUrl, setCfg }: MotifInputProps) {
         <FormattedMessage id="config.imageUrl" />
       </label>
 
-      <input
+      <Input
         type="url"
         placeholder="https://..."
-        className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400"
         value={motifUrl}
         onChange={(e) => setCfg((s) => ({ ...s, motifUrl: e.target.value }))}
       />
-
-      <div className="flex gap-2">
-        <Button
-          variant="subtle"
+      <div className="flex gap-2 mt-3">
+        <AppButton
+          msgId="config.useSample"
           onClick={() =>
             setCfg((s) => ({
               ...s,
@@ -33,9 +31,7 @@ export default function MotifInput({ motifUrl, setCfg }: MotifInputProps) {
                 "https://rueckwand24.com/cdn/shop/files/Kuechenrueckwand-Kuechenrueckwand-Gruene-frische-Kraeuter-KR-000018-HB.jpg?v=1695288356&width=1200",
             }))
           }
-        >
-          <FormattedMessage id="config.useSample" />
-        </Button>
+        />
 
         <span className="text-xs text-slate-500 self-center">
           <FormattedMessage id="preview.url.tip" />
