@@ -1,7 +1,21 @@
+import { useMemo } from "react";
 import { useIntl, FormattedMessage } from "react-intl";
-import PlateCanvas from "../plates/PlateCanvas.jsx";
-import Card from "../ui/Card.jsx";
-import Button from "../ui/Button.jsx";
+import PlateCanvas from "../plates/PlateCanvas";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+import type { Plate, RenderMode } from "@/constants/plates";
+
+type PlateWithStatus = Plate & { status?: "active" | "removing" };
+
+type PreviewCardProps = {
+  plates: PlateWithStatus[];
+  img: HTMLImageElement | null;
+  imgErr: string;
+  renderMode: RenderMode;
+  handleCanvasRef: (c: HTMLCanvasElement | null) => void;
+  recentlyAdded: string | null;
+  exportPNG: () => void;
+};
 
 export default function PreviewCard({
   plates,
@@ -11,8 +25,13 @@ export default function PreviewCard({
   handleCanvasRef,
   recentlyAdded,
   exportPNG,
-}) {
+}: PreviewCardProps) {
   const intl = useIntl();
+
+  const recentlyRemovedId = useMemo(
+    () => plates.find((p) => p.status === "removing")?.id ?? null,
+    [plates]
+  );
 
   return (
     <Card
@@ -32,7 +51,7 @@ export default function PreviewCard({
           renderMode={renderMode}
           onCanvasRef={handleCanvasRef}
           recentlyAdded={recentlyAdded}
-          recentlyRemoved={plates.find((p) => p.status === "removing")?.id}
+          recentlyRemoved={recentlyRemovedId}
         />
       </div>
 

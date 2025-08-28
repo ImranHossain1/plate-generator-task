@@ -1,11 +1,17 @@
+// src/main.tsx
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
 import { RouterProvider } from "react-router-dom";
+import "./index.css";
 import { router } from "./Routes/AppRouter";
 import { LocaleProvider } from "./i18n";
 
-createRoot(document.getElementById("root")).render(
+const container = document.getElementById("root");
+if (!container) {
+  throw new Error('Root element with id="root" not found in index.html');
+}
+
+createRoot(container).render(
   <StrictMode>
     <LocaleProvider>
       <RouterProvider router={router} />

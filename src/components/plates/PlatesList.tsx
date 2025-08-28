@@ -1,15 +1,28 @@
 import { motion as Motion, AnimatePresence } from "framer-motion";
-import PlateRow from "./PlateRow.jsx";
+import PlateRow from "./PlateRow";
+import type { Plate } from "@/constants/plates";
+
+type Unit = "cm" | "inch";
+
+type PlatesListProps = {
+  plates: (Plate & { status?: "removing" | "idle" })[],
+  recentlyAdded?: string | null,
+  activeId: string | null,
+  setActiveId: (id: string | null) => void,
+  updatePlate: (id: string, patch: Partial<Pick<Plate, "w" | "h">>) => void,
+  removePlate: (id: string) => void,
+  unit: Unit,
+};
 
 export default function PlatesList({
   plates,
-  recentlyAdded,
+  recentlyAdded = null,
   activeId,
   setActiveId,
   updatePlate,
   removePlate,
   unit,
-}) {
+}: PlatesListProps) {
   return (
     <div className="mt-3 space-y-5">
       <AnimatePresence>

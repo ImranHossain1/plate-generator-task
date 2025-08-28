@@ -1,24 +1,39 @@
-import { DEFAULT_PLATE_CONFIG, PLATE_LIMITS } from "../constants/plates.js";
+import type React from "react";
+import {
+  DEFAULT_PLATE_CONFIG,
+  PLATE_LIMITS,
+  type Plate,
+  type PlateConfig,
+} from "@/constants/plates";
+
+/** Optional UI status on a plate (for animations, etc.) */
+export type PlateWithStatus = Plate & { status?: "active" | "removing" };
 
 /** Compute derived data for plate configuration */
-export function computePlateStats(plates) {
+export function computePlateStats(plates: Array<Plate | PlateWithStatus>) {
   const totalWidth = plates.reduce((s, p) => s + (Number(p.w) || 0), 0);
   const maxHeight = Math.max(1, ...plates.map((p) => Number(p.h) || 0));
   return { totalWidth, maxHeight };
 }
 
 /** Update a plate with a patch */
-export function updatePlateHelper(cfg, id, patch) {
+export function updatePlateHelper(
+  cfg: PlateConfig,
+  id: string,
+  patch: Partial<Pick<Plate, "w" | "h">>
+): PlateConfig {
   return {
     ...cfg,
-    plates: cfg.plates.map((p) =>
-      p.id === id ? { ...p, ...patch } : p
-    ),
+    plates: cfg.plates.map((p) => (p.id === id ? { ...p, ...patch } : p)),
   };
 }
 
 /** Add a plate after given id (or at end) */
-export function addPlateHelper(cfg, afterId, setRecentlyAdded) {
+export function addPlateHelper(
+  cfg: PlateConfig,
+  afterId: string | undefined,
+  setRecentlyAdded: (id: string | null) => void
+): PlateConfig {
   if (cfg.plates.length >= PLATE_LIMITS.MAX_PLATES) return cfg;
 
   const idx = afterId
@@ -26,7 +41,7 @@ export function addPlateHelper(cfg, afterId, setRecentlyAdded) {
     : cfg.plates.length;
 
   const next = [...cfg.plates];
-  const newPlate = {
+  const newPlate: PlateWithStatus = {
     id: crypto.randomUUID(),
     w: 60,
     h: 100,
@@ -35,13 +50,19 @@ export function addPlateHelper(cfg, afterId, setRecentlyAdded) {
   next.splice(idx, 0, newPlate);
 
   setRecentlyAdded(newPlate.id);
-  setTimeout(() => setRecentlyAdded(null), 500);
+  window.setTimeout(() => setRecentlyAdded(null), 500);
 
   return { ...cfg, plates: next };
 }
 
 /** Mark a plate for removal (and remove after delay) */
-export function removePlateHelper(cfg, id, setCfg) {
+export function removePlateHelper(
+  cfg: PlateConfig & { plates: PlateWithStatus[] },
+  id: string,
+  setCfg: React.Dispatch<
+    React.SetStateAction<PlateConfig & { plates: PlateWithStatus[] }>
+  >
+): void {
   // mark as removing
   setCfg({
     ...cfg,
@@ -51,7 +72,7 @@ export function removePlateHelper(cfg, id, setCfg) {
   });
 
   // cleanup after animation delay
-  setTimeout(() => {
+  window.setTimeout(() => {
     setCfg((s) => ({
       ...s,
       plates:
@@ -63,7 +84,7 @@ export function removePlateHelper(cfg, id, setCfg) {
 }
 
 /** Export canvas as PNG */
-export function exportPNGHelper(canvasEl) {
+export function exportPNGHelper(canvasEl: HTMLCanvasElement | null): void {
   if (!canvasEl) return;
   const url = canvasEl.toDataURL("image/png");
   const a = document.createElement("a");
@@ -72,8 +93,10 @@ export function exportPNGHelper(canvasEl) {
   a.click();
 }
 
-/** Reset to default config */
-export function resetConfigHelper() {
+/** Reset to default config (adds UI status) */
+export function resetConfigHelper(): PlateConfig & {
+  plates: PlateWithStatus[];
+} {
   return {
     ...DEFAULT_PLATE_CONFIG,
     plates: DEFAULT_PLATE_CONFIG.plates.map((p) => ({

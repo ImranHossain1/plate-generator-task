@@ -1,7 +1,14 @@
+import React from "react";
 import { FormattedMessage } from "react-intl";
-import Button from "../ui/Button.jsx";
+import Button from "../ui/Button";
+import type { PlateConfig } from "@/constants/plates";
 
-export default function MotifInput({ motifUrl, setCfg }) {
+type MotifInputProps = {
+  motifUrl: string;
+  setCfg: React.Dispatch<React.SetStateAction<PlateConfig>>;
+};
+
+export default function MotifInput({ motifUrl, setCfg }: MotifInputProps) {
   return (
     <div className="space-y-1">
       <label className="text-sm font-medium">

@@ -1,11 +1,39 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { Plate, RenderMode } from "@/constants/plates";
 
-function drawImageClamped(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
+type PlateCanvasProps = {
+  plates: Plate[];
+  img: HTMLImageElement | null; // loaded image from your useImage hook
+  renderMode: RenderMode;       // "cover" | "contain" | "tile"
+  onCanvasRef?: (el: HTMLCanvasElement | null) => void;
+  recentlyAdded?: string | null;   // plate id
+  recentlyRemoved?: string | null; // plate id
+};
+
+type ResizeChange = { id: string; type: "grow" | "shrink" };
+
+// Draw with source clamping while preserving destination alignment.
+function drawImageClamped(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement | HTMLCanvasElement,
+  sx: number,
+  sy: number,
+  sw: number,
+  sh: number,
+  dx: number,
+  dy: number,
+  dw: number,
+  dh: number
+) {
   const EPS = 0.01;
-  const sxa = Math.max(0, Math.min(img.width, sx));
-  const sya = Math.max(0, Math.min(img.height, sy));
-  const sxb = Math.max(0, Math.min(img.width, sx + sw));
-  const syb = Math.max(0, Math.min(img.height, sy + sh));
+
+  const imgW = img.width;
+  const imgH = img.height;
+
+  const sxa = Math.max(0, Math.min(imgW, sx));
+  const sya = Math.max(0, Math.min(imgH, sy));
+  const sxb = Math.max(0, Math.min(imgW, sx + sw));
+  const syb = Math.max(0, Math.min(imgH, sy + sh));
 
   const clampedSW = Math.max(0, sxb - sxa);
   const clampedSH = Math.max(0, syb - sya);
@@ -23,21 +51,17 @@ function drawImageClamped(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
 
   if (adjDw < EPS || adjDh < EPS) return;
 
-  ctx.drawImage(
-    img,
-    sxa,
-    sya,
-    clampedSW,
-    clampedSH,
-    adjDx,
-    adjDy,
-    adjDw,
-    adjDh
-  );
+  ctx.drawImage(img, sxa, sya, clampedSW, clampedSH, adjDx, adjDy, adjDw, adjDh);
 }
 
 // simple hatch fallback
-function hatch(ctx, x, y, w, h) {
+function hatch(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number
+) {
   ctx.save();
   ctx.strokeStyle = "#ccc";
   ctx.lineWidth = 1;
@@ -59,14 +83,14 @@ export default function PlateCanvas({
   img,
   renderMode,
   onCanvasRef,
-  recentlyAdded,
-  recentlyRemoved,
-}) {
-  const canvasRef = useRef(null);
-  const wrapRef = useRef(null);
+  recentlyAdded = null,
+  recentlyRemoved = null,
+}: PlateCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
 
-  const [resizedPlates, setResizedPlates] = useState([]);
-  const prevPlatesRef = useRef([]);
+  const [resizedPlates, setResizedPlates] = useState<ResizeChange[]>([]);
+  const prevPlatesRef = useRef<Plate[]>([]);
 
   const totalWidth = useMemo(
     () => plates.reduce((s, p) => s + (Number(p.w) || 0), 0),
@@ -85,7 +109,7 @@ export default function PlateCanvas({
   // detect width/height changes for resize animation
   useEffect(() => {
     const prev = prevPlatesRef.current;
-    const changes = [];
+    const changes: ResizeChange[] = [];
     plates.forEach((p) => {
       const prevP = prev.find((x) => x.id === p.id);
       if (prevP && (prevP.w !== p.w || prevP.h !== p.h)) {
@@ -95,23 +119,24 @@ export default function PlateCanvas({
     });
     if (changes.length > 0) {
       setResizedPlates(changes);
-      setTimeout(() => setResizedPlates([]), 600);
+      const t = setTimeout(() => setResizedPlates([]), 600);
+      return () => clearTimeout(t);
     }
     prevPlatesRef.current = plates.map((p) => ({ ...p }));
   }, [plates]);
 
   // Build a mirrored source when total width > 300 cm
   const { sourceImg, sW, sH } = useMemo(() => {
-    const needsMirror =
-      totalWidth > 300 && img && img.width > 0 && img.height > 0;
-    if (!needsMirror) {
-      return { sourceImg: img, sW: img?.width || 0, sH: img?.height || 0 };
+    const ready = img && img.width > 0 && img.height > 0;
+    const needsMirror = totalWidth > 300 && ready;
+    if (!needsMirror || !img) {
+      return { sourceImg: img as HTMLImageElement | HTMLCanvasElement | null, sW: img?.width ?? 0, sH: img?.height ?? 0 };
     }
     // Make a 2× wide stripe: [img | mirrored img]
     const stripe = document.createElement("canvas");
     stripe.width = img.width * 2;
     stripe.height = img.height;
-    const sctx = stripe.getContext("2d");
+    const sctx = stripe.getContext("2d")!;
     // left: original
     sctx.drawImage(img, 0, 0);
     // right: mirrored
@@ -120,7 +145,7 @@ export default function PlateCanvas({
     sctx.scale(-1, 1); // flip horizontally
     sctx.drawImage(img, 0, 0); // draw from (0,0) in flipped space
     sctx.restore();
-    return { sourceImg: stripe, sW: stripe.width, sH: stripe.height };
+    return { sourceImg: stripe as HTMLCanvasElement, sW: stripe.width, sH: stripe.height };
   }, [img, totalWidth]);
 
   useEffect(() => {
@@ -128,13 +153,14 @@ export default function PlateCanvas({
     const wrap = wrapRef.current;
     if (!canvas || !wrap) return;
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
     const cmW = Math.max(1, totalWidth);
     const cmH = Math.max(1, maxHeight);
     const pad = 24;
 
     // 1 cm == 1 px (we’ll scale down only for fitting)
-    let scale = 1;
+    const scale = 1;
 
     // Canvas pixel size
     const pxW = Math.max(1, Math.round(cmW * scale));
@@ -149,57 +175,58 @@ export default function PlateCanvas({
     wrap.style.overflowX = fits ? "hidden" : "auto";
     if (!fits) wrap.scrollLeft = 0;
 
-    let start = null;
+    let start: number | null = null;
     const duration = 500;
-    let animationFrame;
+    let animationFrame = 0;
 
-    function drawFrame(timestamp) {
+    function getCoverSrcRect(
+      imgW: number,
+      imgH: number,
+      destW: number,
+      destH: number,
+      mode: RenderMode
+    ) {
+      const srcRatio = imgW / imgH;
+      const destRatio = destW / destH;
+
+      if (mode === "contain") {
+        // fit the whole image inside, center remainder
+        if (destRatio > srcRatio) {
+          const newW = imgH * destRatio;
+          const xOff = (imgW - newW) / 2;
+          return { x: xOff, y: 0, w: newW, h: imgH };
+        } else {
+          const newH = imgW / destRatio;
+          const yOff = (imgH - newH) / 2;
+          return { x: 0, y: yOff, w: imgW, h: newH };
+        }
+      }
+
+      // cover: fill destination, cropping from center outward
+      if (destRatio > srcRatio) {
+        const newH = imgW / destRatio;
+        const yOff = (imgH - newH) / 2;
+        return { x: 0, y: yOff, w: imgW, h: newH };
+      } else {
+        const newW = imgH * destRatio;
+        const xOff = (imgW - newW) / 2;
+        return { x: xOff, y: 0, w: newW, h: imgH };
+      }
+    }
+
+    const hasSource = !!sourceImg && sW > 0 && sH > 0;
+    const globalSrc =
+      hasSource && renderMode !== "tile"
+        ? getCoverSrcRect(sW, sH, pxW, pxH, renderMode)
+        : null;
+
+    const drawFrame = (timestamp: number) => {
       if (!start) start = timestamp;
       const progress = Math.min(1, (timestamp - start) / duration);
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#f8fafc";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Compute a centered source rect for the WHOLE composition.
-      function getCoverSrcRect(imgW, imgH, destW, destH, mode) {
-        // Center-outward crop for both modes
-        const srcRatio = imgW / imgH;
-        const destRatio = destW / destH;
-
-        if (mode === "contain") {
-          // fit the whole image inside, center remainder
-          if (destRatio > srcRatio) {
-            // empty bars left/right -> widen source to match dest aspect (centered)
-            const newW = imgH * destRatio;
-            const xOff = (imgW - newW) / 2;
-            return { x: xOff, y: 0, w: newW, h: imgH };
-          } else {
-            const newH = imgW / destRatio;
-            const yOff = (imgH - newH) / 2;
-            return { x: 0, y: yOff, w: imgW, h: newH };
-          }
-        }
-
-        // cover: fill destination, cropping from center outward
-        if (destRatio > srcRatio) {
-          // crop top/bottom
-          const newH = imgW / destRatio;
-          const yOff = (imgH - newH) / 2;
-          return { x: 0, y: yOff, w: imgW, h: newH };
-        } else {
-          // crop left/right
-          const newW = imgH * destRatio;
-          const xOff = (imgW - newW) / 2;
-          return { x: xOff, y: 0, w: newW, h: imgH };
-        }
-      }
-
-      let globalSrc = null;
-      if (sourceImg && sW > 0 && sH > 0 && renderMode !== "tile") {
-        // Use mirrored stripe if it exists; crop centered
-        globalSrc = getCoverSrcRect(sW, sH, pxW, pxH, renderMode);
-      }
 
       let cursorX = 0;
       plates.forEach((p) => {
@@ -241,10 +268,9 @@ export default function PlateCanvas({
         ctx.rect(x, y + (h - drawH), drawW, drawH); // bottom-aligned
         ctx.clip();
 
-        if (sourceImg && sW > 0 && sH > 0) {
+        if (hasSource) {
           if (renderMode === "tile") {
-            // tile from mirrored stripe if active; gives seamless mirror joins too
-            const pat = ctx.createPattern(sourceImg, "repeat");
+            const pat = ctx.createPattern(sourceImg!, "repeat");
             if (pat) {
               ctx.fillStyle = pat;
               ctx.fillRect(x, y + (h - drawH), drawW, drawH);
@@ -253,8 +279,8 @@ export default function PlateCanvas({
             }
           } else if (globalSrc) {
             // Map this plate’s “window” inside the full composition
-            const fx = cursorX / pxW; // left fraction
-            const fy = (pxH - h) / pxH; // bottom-aligned -> top fraction
+            const fx = cursorX / pxW;      // left fraction
+            const fy = (pxH - h) / pxH;    // bottom-aligned -> top fraction
             const fw = drawW / pxW;
             const fh = drawH / pxH;
 
@@ -265,7 +291,7 @@ export default function PlateCanvas({
 
             drawImageClamped(
               ctx,
-              sourceImg,
+              sourceImg!,
               sx,
               sy,
               sw,
@@ -287,9 +313,11 @@ export default function PlateCanvas({
       if (progress < 1) {
         animationFrame = requestAnimationFrame(drawFrame);
       }
-    }
+    };
 
-    animationFrame = requestAnimationFrame(drawFrame);
+    const id = requestAnimationFrame(drawFrame);
+    animationFrame = id;
+
     return () => cancelAnimationFrame(animationFrame);
   }, [
     plates,

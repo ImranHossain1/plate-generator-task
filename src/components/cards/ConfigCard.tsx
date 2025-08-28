@@ -1,9 +1,29 @@
 import { useIntl, FormattedMessage } from "react-intl";
-import Card from "../ui/Card.jsx";
-import MotifInput from "../plates/MotifInput.jsx";
-import PlatesList from "../plates/PlatesList.jsx";
-import PlatesActions from "../plates/PlatesActions.jsx";
-import ToggleButton from "../ui/ToggleButton.jsx";
+import Card from "../ui/Card";
+import MotifInput from "../plates/MotifInput";
+import PlatesList from "../plates/PlatesList";
+import PlatesActions from "../plates/PlatesActions";
+import ToggleButton from "../ui/ToggleButton";
+import type { Plate, PlateConfig } from "@/constants/plates";
+
+type Unit = "cm" | "inch";
+
+type ConfigCardProps = {
+  plates: Plate[];
+  motifUrl: string;
+  setCfg: React.Dispatch<React.SetStateAction<PlateConfig>>;
+  totalWidth: number; // in cm
+  maxHeight: number; // in cm
+  recentlyAdded?: string | null;
+  activeId: string | null;
+  setActiveId: (id: string | null) => void;
+  updatePlate: (id: string, patch: Partial<Pick<Plate, "w" | "h">>) => void;
+  removePlate: (id: string) => void;
+  addPlate: () => void;
+  resetToDefaults: () => void;
+  unit: Unit;
+  setUnit: (u: Unit) => void;
+};
 
 export default function ConfigCard({
   plates,
@@ -11,7 +31,7 @@ export default function ConfigCard({
   setCfg,
   totalWidth,
   maxHeight,
-  recentlyAdded,
+  recentlyAdded = null,
   activeId,
   setActiveId,
   updatePlate,
@@ -20,7 +40,7 @@ export default function ConfigCard({
   resetToDefaults,
   unit,
   setUnit,
-}) {
+}: ConfigCardProps) {
   const intl = useIntl();
 
   return (
@@ -34,7 +54,7 @@ export default function ConfigCard({
           </h3>
 
           <div className="flex justify-end mb-3">
-            <ToggleButton
+            <ToggleButton<Unit>
               value={unit}
               onChange={setUnit}
               options={[

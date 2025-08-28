@@ -1,28 +1,33 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import usePersistentState from "../../hooks/usePersistentState.js";
-import useImage from "../../hooks/useImage.js";
-import { DEFAULT_PLATE_CONFIG } from "../../constants/plates.js";
+import { useEffect, useRef, useState } from "react";
+import usePersistentState from "@/hooks/usePersistentState";
+import useImage from "@/hooks/useImage";
 import {
-  computePlateStats,
-  updatePlateHelper,
-  addPlateHelper,
-  removePlateHelper,
-  exportPNGHelper,
-  resetConfigHelper,
-} from "../../utils/plates.js";
+  DEFAULT_PLATE_CONFIG,
+  type Plate,
+  type PlateConfig,
+  type RenderMode,
+} from "@/constants/plates";
 
-import PreviewCard from "../../components/cards/PreviewCard.jsx";
-import ConfigCard from "../../components/cards/ConfigCard.jsx";
+
+import PreviewCard from "@/components/cards/PreviewCard";
+import ConfigCard from "@/components/cards/ConfigCard";
+import { addPlateHelper, computePlateStats, exportPNGHelper, removePlateHelper, resetConfigHelper, updatePlateHelper } from "@/utils/plates";
+
+type Unit = "cm" | "inch";
 
 export default function HomePage() {
-  const [cfg, setCfg] = usePersistentState("plategen:v1", DEFAULT_PLATE_CONFIG);
+  const [cfg, setCfg] = usePersistentState<PlateConfig>(
+    "plategen:v1",
+    DEFAULT_PLATE_CONFIG
+  );
   const { plates, motifUrl, renderMode } = cfg;
+
   const { img, error: imgErr } = useImage(motifUrl);
 
-  const [recentlyAdded, setRecentlyAdded] = useState(null);
-  const [activeId, setActiveId] = useState(plates[0]?.id || null);
+  const [recentlyAdded, setRecentlyAdded] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(plates[0]?.id ?? null);
 
-  const [unit, setUnit] = useState("cm"); // "cm" | "inch"
+  const [unit, setUnit] = useState<Unit>("cm");
 
   useEffect(() => {
     if (!plates.find((p) => p.id === activeId)) {
@@ -30,30 +35,27 @@ export default function HomePage() {
     }
   }, [plates, activeId]);
 
-  const { totalWidth, maxHeight } = computePlateStats(plates);
+  const { totalWidth, maxHeight } = computePlateStats(plates); // -> { totalWidth: number, maxHeight: number }
 
-  const updatePlate = (id, patch) =>
+  const updatePlate = (id: string, patch: Partial<Pick<Plate, "w" | "h">>) =>
     setCfg((s) => updatePlateHelper(s, id, patch));
 
-  const addPlate = (afterId) =>
+  const addPlate = (afterId?: string) =>
     setCfg((s) => addPlateHelper(s, afterId, setRecentlyAdded));
 
-  const removePlate = (id) => removePlateHelper(cfg, id, setCfg);
+  const removePlate = (id: string) => removePlateHelper(cfg, id, setCfg);
 
-  // ✅ Use a ref so exportPNG always has the current canvas
-  const exportCanvasRef = useRef(null);
-  const handleCanvasRef = useCallback((c) => {
+  // Canvas ref for export
+  const exportCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const handleCanvasRef = (c: HTMLCanvasElement | null) => {
     exportCanvasRef.current = c;
-  }, []);
-  const exportPNG = useCallback(() => {
-    exportPNGHelper(exportCanvasRef.current);
-  }, []);
+  };
+  const exportPNG = () => exportPNGHelper(exportCanvasRef.current);
 
   const resetToDefaults = () => setCfg(resetConfigHelper());
 
   return (
     <div className="mx-auto max-w-7xl">
-      {/* Preview grows (min-w-0 so it can overflow), Card column does not shrink */}
       <div className="grid gap-6 md:grid-cols-[1fr_480px]">
         {/* Left: Preview */}
         <div className="min-w-0">
@@ -61,7 +63,7 @@ export default function HomePage() {
             plates={plates}
             img={img}
             imgErr={imgErr}
-            renderMode={renderMode}
+            renderMode={renderMode as RenderMode}
             handleCanvasRef={handleCanvasRef}
             recentlyAdded={recentlyAdded}
             exportPNG={exportPNG}

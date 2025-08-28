@@ -1,4 +1,12 @@
-export default function Card({ title, subtitle, right, children }) {
+type CardProps = {
+  title?: React.ReactNode;
+  subtitle?: React.ReactNode;
+  right?: React.ReactNode;
+  children?: React.ReactNode;
+  className?: string;
+};
+
+export default function Card({ title, subtitle, right, children }: CardProps) {
   return (
     <section className="rounded-2xl bg-white p-3">
       {(title || subtitle || right) && (
