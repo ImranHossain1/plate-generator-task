@@ -4,7 +4,6 @@ import {
   DEFAULT_PLATE_CONFIG,
   type Plate,
   type PlateConfig,
-  type RenderMode,
 } from "../../constants/plates";
 import useImage from "../../hooks/useImage";
 import {
@@ -18,22 +17,14 @@ import {
 
 import PreviewCard from "../../components/cards/PreviewCard";
 import ConfigCard from "../../components/cards/ConfigCard";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/Card";
-import AppCard from "../../components/common/AppCard";
-
-type Unit = "cm" | "inch";
+import { Unit } from "../../utils/types";
 
 export default function HomePage() {
   const [cfg, setCfg] = usePersistentState<PlateConfig>(
     "plategen:v1",
     DEFAULT_PLATE_CONFIG
   );
-  const { plates, motifUrl, renderMode } = cfg;
+  const { plates, motifUrl } = cfg;
   const { img, error: imgErr } = useImage(motifUrl);
 
   const [recentlyAdded, setRecentlyAdded] = useState<string | null>(null);
@@ -68,37 +59,21 @@ export default function HomePage() {
   const resetToDefaults = () => setCfg(resetConfigHelper());
 
   return (
-    <AppCard
-      className="container mx-auto border-0 shadow-none bg-transparent"
-      contentClassName="p-0 border-0 bg-transparent"
-      noHeaderPadding
-      noContentPadding
-    >
-      {/* Mobile: stacked cards */}
-      <div className="md:hidden">
-        <AppCard
-          className="border-0 shadow-none bg-transparent"
-          contentClassName="p-0 border-0 bg-transparent"
-          noHeaderPadding
-          noContentPadding
-        >
+    <div className="mx-auto max-w-7xl">
+      <div className="grid gap-6 md:grid-cols-[1fr_480px]">
+        <div className="min-w-0">
           <PreviewCard
             plates={plates}
             img={img}
             imgErr={imgErr}
-            renderMode={renderMode as RenderMode}
             handleCanvasRef={handleCanvasRef}
             recentlyAdded={recentlyAdded}
             exportPNG={exportPNG}
           />
-        </AppCard>
+        </div>
 
-        <AppCard
-          className="border-0 shadow-none bg-transparent mt-0"
-          contentClassName="p-0 border-0 bg-transparent"
-          noHeaderPadding
-          noContentPadding
-        >
+        {/* Right: Config */}
+        <div className="w-full md:w-[480px] md:flex-none">
           <ConfigCard
             plates={plates}
             motifUrl={motifUrl}
@@ -115,52 +90,8 @@ export default function HomePage() {
             unit={unit}
             setUnit={setUnit}
           />
-        </AppCard>
+        </div>
       </div>
-
-      {/* Desktop: two-column layout */}
-      <div className="hidden md:grid md:grid-cols-[1fr_480px] gap-6">
-        <AppCard
-          className="min-w-0 border-0 shadow-none bg-transparent"
-          contentClassName="p-0 border-0 bg-transparent"
-          noHeaderPadding
-          noContentPadding
-        >
-          <PreviewCard
-            plates={plates}
-            img={img}
-            imgErr={imgErr}
-            renderMode={renderMode as RenderMode}
-            handleCanvasRef={handleCanvasRef}
-            recentlyAdded={recentlyAdded}
-            exportPNG={exportPNG}
-          />
-        </AppCard>
-
-        <AppCard
-          className="w-full md:w-[480px] md:flex-none border-0 shadow-none bg-transparent"
-          contentClassName="p-0 border-0 bg-transparent"
-          noHeaderPadding
-          noContentPadding
-        >
-          <ConfigCard
-            plates={plates}
-            motifUrl={motifUrl}
-            setCfg={setCfg}
-            totalWidth={totalWidth}
-            maxHeight={maxHeight}
-            recentlyAdded={recentlyAdded}
-            activeId={activeId}
-            setActiveId={setActiveId}
-            updatePlate={updatePlate}
-            removePlate={removePlate}
-            addPlate={addPlate}
-            resetToDefaults={resetToDefaults}
-            unit={unit}
-            setUnit={setUnit}
-          />
-        </AppCard>
-      </div>
-    </AppCard>
+    </div>
   );
 }

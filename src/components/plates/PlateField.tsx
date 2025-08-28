@@ -1,20 +1,7 @@
 import { parseLocaleNumber } from "../../utils/number";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "../ui/input";
-
-type Unit = "cm" | "inch";
-
-type PlateFieldProps = {
-  label: React.ReactNode;
-  min: number;
-  max: number;
-  draft: string;
-  error?: string | null;
-  onChange: React.ChangeEventHandler<HTMLInputElement>;
-  onBlur?: React.FocusEventHandler<HTMLInputElement>;
-  isActive?: boolean;
-  unit: Unit;
-};
+import { PlateFieldProps } from "../../utils/types";
 
 export default function PlateField({
   label,

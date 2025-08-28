@@ -1,29 +1,9 @@
 import { useIntl, FormattedMessage } from "react-intl";
-import { Plate, PlateConfig } from "../../constants/plates";
 import MotifInput from "../plates/MotifInput";
 import PlatesList from "../plates/PlatesList";
 import PlatesActions from "../plates/PlatesActions";
 import AppToggle from "../common/AppToggle";
-import AppCard from "../common/AppCard";
-
-type Unit = "cm" | "inch";
-
-type ConfigCardProps = {
-  plates: Plate[];
-  motifUrl: string;
-  setCfg: React.Dispatch<React.SetStateAction<PlateConfig>>;
-  totalWidth: number; // in cm
-  maxHeight: number; // in cm
-  recentlyAdded?: string | null;
-  activeId: string | null;
-  setActiveId: (id: string | null) => void;
-  updatePlate: (id: string, patch: Partial<Pick<Plate, "w" | "h">>) => void;
-  removePlate: (id: string) => void;
-  addPlate: () => void;
-  resetToDefaults: () => void;
-  unit: Unit;
-  setUnit: (u: Unit) => void;
-};
+import { ConfigCardProps, Unit } from "../../utils/types";
 
 export default function ConfigCard({
   plates,
@@ -44,7 +24,7 @@ export default function ConfigCard({
   const intl = useIntl();
 
   return (
-    <AppCard title={intl.formatMessage({ id: "config.title" })}>
+    <div>
       <MotifInput motifUrl={motifUrl} setCfg={setCfg} />
 
       <div className="flex items-center justify-between mt-5 mb-2">
@@ -81,6 +61,6 @@ export default function ConfigCard({
         totalWidth={totalWidth}
         maxHeight={maxHeight}
       />
-    </AppCard>
+    </div>
   );
 }

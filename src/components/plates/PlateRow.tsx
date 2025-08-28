@@ -6,6 +6,7 @@ import { Plate, PLATE_LIMITS } from "../../constants/plates";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/Card";
 import AppButton from "../common/AppButton";
+import AppCard from "../common/AppCard";
 
 type IntlValues = Record<string, PrimitiveType>;
 type ErrorMsg = { id: string; values?: IntlValues } | null;
@@ -131,7 +132,7 @@ export default function PlateRow({
 
   return (
     <div className="relative">
-      {/* Mobile index badge (shadcn Badge) */}
+      {/* Mobile index badge */}
       <Badge
         variant={isActive ? "default" : "outline"}
         className="absolute -top-2 -left-2 z-10 h-5 w-5 select-none items-center justify-center p-0 text-center text-xs font-semibold md:hidden"
@@ -155,66 +156,87 @@ export default function PlateRow({
         />
       </div>
 
-      <Card
+      <AppCard
         role="button"
         tabIndex={0}
+        aria-selected={isActive}
         onClick={onSelect}
-        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelect?.()}
-        className={`relative shadow-sm transition-colors ${
-          isActive ? "ring-1 ring-ring" : ""
-        }`}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelect?.();
+          }
+        }}
+        className={[
+          "relative rounded-xl overflow-hidden",
+          "transition-[height,background-color,box-shadow] duration-200 ease-in-out",
+          isActive
+            ? "h-30 bg-background ring-1 ring-ring"
+            : "h-20 bg-muted/30 hover:bg-muted/40",
+        ].join(" ")}
+        noContentPadding
+        contentClassName="
+    h-full flex items-center gap-3
+    md:grid md:grid-cols-[auto_1fr_auto] md:gap-4
+  "
       >
-        <CardContent className="grid grid-cols-[auto_1fr_auto] items-center gap-4 p-4">
-          {/* Desktop index badge */}
-          <Badge
-            variant={isActive ? "default" : "outline"}
-            className="hidden h-9 w-9 select-none items-center justify-center rounded-lg p-0 text-xs font-semibold md:flex"
-          >
-            {index + 1}
-          </Badge>
+        {/* Badge */}
+        <Badge
+          variant={isActive ? "default" : "outline"}
+          className="hidden h-9 w-9 select-none items-center justify-center rounded-lg p-0 text-xs font-semibold md:flex"
+        >
+          {index + 1}
+        </Badge>
 
-          <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-            <PlateField
-              label={intl.formatMessage({ id: "plate.width" })}
-              min={PLATE_LIMITS.MIN_W}
-              max={PLATE_LIMITS.MAX_W}
-              draft={wDraft}
-              error={wErrorText}
-              onChange={(e) => setWDraft(e.target.value)}
-              onBlur={handleBlurW}
-              isActive={isActive}
-              unit={unit}
-            />
-            <PlateField
-              label={intl.formatMessage({ id: "plate.height" })}
-              min={PLATE_LIMITS.MIN_H}
-              max={PLATE_LIMITS.MAX_H}
-              draft={hDraft}
-              error={hErrorText}
-              onChange={(e) => setHDraft(e.target.value)}
-              onBlur={handleBlurH}
-              isActive={isActive}
-              unit={unit}
-            />
+        {/* Fields */}
+        <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-x-3 md:gap-x-6">
+          <PlateField
+            label={intl.formatMessage({ id: "plate.width" })}
+            min={PLATE_LIMITS.MIN_W}
+            max={PLATE_LIMITS.MAX_W}
+            draft={wDraft}
+            error={wErrorText}
+            onChange={(e) => setWDraft(e.target.value)}
+            onBlur={handleBlurW}
+            isActive={isActive}
+            unit={unit}
+          />
+
+          <div className="flex items-center justify-center">
+            <span className="select-none text-lg font-semibold text-muted-foreground">
+              ×
+            </span>
           </div>
 
-          {/* Desktop remove */}
-          <div className="hidden items-center self-center md:flex">
-            <AppButton
-              variant="destructive"
-              size="icon"
-              className="h-7 w-7 rounded-full p-0 text-sm leading-none"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove();
-              }}
-              disabled={!canRemove}
-              title={intl.formatMessage({ id: "plate.remove" })}
-              icon="–"
-            />
-          </div>
-        </CardContent>
-      </Card>
+          <PlateField
+            label={intl.formatMessage({ id: "plate.height" })}
+            min={PLATE_LIMITS.MIN_H}
+            max={PLATE_LIMITS.MAX_H}
+            draft={hDraft}
+            error={hErrorText}
+            onChange={(e) => setHDraft(e.target.value)}
+            onBlur={handleBlurH}
+            isActive={isActive}
+            unit={unit}
+          />
+        </div>
+
+        {/* Remove button */}
+        <div className="hidden md:flex items-center justify-center">
+          <AppButton
+            variant="destructive"
+            size="icon"
+            className="h-7 w-7 rounded-full p-0 text-sm leading-none"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove();
+            }}
+            disabled={!canRemove}
+            title={intl.formatMessage({ id: "plate.remove" })}
+            icon="–"
+          />
+        </div>
+      </AppCard>
     </div>
   );
 }

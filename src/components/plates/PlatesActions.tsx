@@ -1,18 +1,7 @@
 import { FormattedMessage, FormattedNumber } from "react-intl";
 import { PLATE_LIMITS } from "../../constants/plates";
 import AppButton from "../common/AppButton";
-
-type Unit = "cm" | "inch";
-
-type PlatesActionsProps = {
-  plates: unknown[];
-  addPlate: () => void;
-  resetToDefaults: () => void;
-  unit: Unit;
-  totalWidth: number;
-  maxHeight: number;
-};
-
+import { PlatesActionsProps } from "../../utils/types";
 export default function PlatesActions({
   plates,
   addPlate,

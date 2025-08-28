@@ -1,27 +1,14 @@
 import { useMemo } from "react";
 import { useIntl, FormattedMessage } from "react-intl";
-import { Plate, RenderMode } from "../../constants/plates";
 import PlateCanvas from "../plates/PlateCanvas";
+import { PreviewCardProps } from "../../utils/types";
 import AppButton from "../common/AppButton";
 import AppCard from "../common/AppCard";
-
-type PlateWithStatus = Plate & { status?: "active" | "removing" };
-
-type PreviewCardProps = {
-  plates: PlateWithStatus[];
-  img: HTMLImageElement | null;
-  imgErr: string;
-  renderMode: RenderMode;
-  handleCanvasRef: (c: HTMLCanvasElement | null) => void;
-  recentlyAdded: string | null;
-  exportPNG: () => void;
-};
 
 export default function PreviewCard({
   plates,
   img,
   imgErr,
-  renderMode,
   handleCanvasRef,
   recentlyAdded,
   exportPNG,
@@ -34,22 +21,15 @@ export default function PreviewCard({
   );
 
   return (
-    <AppCard
-      title={intl.formatMessage({ id: "preview.title" })}
-      subtitle={intl.formatMessage({ id: "preview.subtitle" })}
-      action={<AppButton msgId="preview.export" onClick={exportPNG} />}
-      className="mb-5 md:h-[460px] lg:h-[520px]"
-    >
-      <div className="flex-1">
-        <PlateCanvas
-          plates={plates}
-          img={img}
-          renderMode={renderMode}
-          onCanvasRef={handleCanvasRef}
-          recentlyAdded={recentlyAdded}
-          recentlyRemoved={recentlyRemovedId}
-        />
-      </div>
+    <div>
+      <PlateCanvas
+        plates={plates}
+        img={img}
+        exportPNG={exportPNG}
+        onCanvasRef={handleCanvasRef}
+        recentlyAdded={recentlyAdded}
+        recentlyRemoved={recentlyRemovedId}
+      />
 
       {imgErr && (
         <div className="px-1 pt-2 text-sm">
@@ -61,6 +41,6 @@ export default function PreviewCard({
           </div>
         </div>
       )}
-    </AppCard>
+    </div>
   );
 }
