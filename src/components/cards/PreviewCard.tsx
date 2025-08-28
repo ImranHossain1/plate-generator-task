@@ -1,12 +1,14 @@
-// src/components/cards/PreviewCard.tsx
-import React from "react";
-import Card from "@/components/ui/Card";
-import PlateCanvas from "@/components/plates/PlateCanvas";
+import { useMemo } from "react";
+import { useIntl, FormattedMessage } from "react-intl";
+import PlateCanvas from "../plates/PlateCanvas";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
 import type { Plate, RenderMode } from "@/constants/plates";
-import Button from "@/components/ui/Button";
+
+type PlateWithStatus = Plate & { status?: "active" | "removing" };
 
 type PreviewCardProps = {
-  plates: Plate[];
+  plates: PlateWithStatus[];
   img: HTMLImageElement | null;
   imgErr: string;
   renderMode: RenderMode;
@@ -24,26 +26,43 @@ export default function PreviewCard({
   recentlyAdded,
   exportPNG,
 }: PreviewCardProps) {
+  const intl = useIntl();
+
+  const recentlyRemovedId = useMemo(
+    () => plates.find((p) => p.status === "removing")?.id ?? null,
+    [plates]
+  );
+
   return (
     <Card
-      title="Preview"
+      title={intl.formatMessage({ id: "preview.title" })}
+      subtitle={intl.formatMessage({ id: "preview.subtitle" })}
       right={
-        <Button onClick={exportPNG} variant="outline">
-          Export PNG
+        <Button onClick={exportPNG}>
+          <FormattedMessage id="preview.export" />
         </Button>
       }
-      subtitle={imgErr ? <span className="text-red-600">{imgErr}</span> : null}
+      className="h-[280px] sm:h-[360px] md:h-[460px] lg:h-[520px] flex flex-col"
     >
-      <div className="mt-2">
+      <div className="flex-1">
         <PlateCanvas
           plates={plates}
           img={img}
           renderMode={renderMode}
           onCanvasRef={handleCanvasRef}
           recentlyAdded={recentlyAdded}
-          recentlyRemoved={null}
+          recentlyRemoved={recentlyRemovedId}
         />
       </div>
+
+      {imgErr && (
+        <div className="px-1 pt-2 text-sm">
+          <div className="text-red-600">{imgErr}</div>
+          <div className="text-slate-500 mt-1">
+            <FormattedMessage id="preview.url.tip" />
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

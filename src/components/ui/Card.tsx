@@ -1,11 +1,9 @@
-// src/components/ui/Card.tsx
-import React from "react";
-
 type CardProps = {
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
   right?: React.ReactNode;
   children?: React.ReactNode;
+  className?: string;
 };
 
 export default function Card({ title, subtitle, right, children }: CardProps) {

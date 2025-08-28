@@ -1,4 +1,3 @@
-// src/components/ui/TextField.tsx
 import React, { forwardRef } from "react";
 
 type TextFieldProps = Omit<
@@ -51,7 +50,9 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             value={value}
             onChange={onChange}
             placeholder={placeholder}
-            className={`w-full h-9 ${rightAddon ? "pr-8" : ""} pl-3 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 ${className}`}
+            className={`w-full h-9 ${
+              rightAddon ? "pr-8" : ""
+            } pl-3 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 ${className}`}
             {...rest}
           />
           {rightAddon && (
