@@ -15,8 +15,8 @@ import {
   updatePlateHelper,
 } from "../../utils/plates";
 
-import PreviewCard from "../../components/cards/PreviewCard";
-import ConfigCard from "../../components/cards/ConfigCard";
+import PreviewCard from "../../components/previewLayout/PreviewCard";
+import ConfigCard from "../../components/configLayout/ConfigCard";
 import { Unit } from "../../utils/types";
 
 export default function HomePage() {

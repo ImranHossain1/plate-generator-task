@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Konva from "konva";
 import type { Stage as KonvaStage } from "konva/lib/Stage";
 import AppCard from "../common/AppCard";
-import CanvasStage from "./CanvasStage";
-import PlateBlock from "./PlateBlock";
-import RemovedGhostCmp from "./RemovedGhost";
+import CanvasStage from "../plates/CanvasStage";
+import PlateBlock from "../plates/PlateBlock";
+import RemovedGhostCmp from "../plates/RemovedGhost";
 import { Plate } from "../../constants/plates";
 import { useIntl, FormattedMessage } from "react-intl";
 import {

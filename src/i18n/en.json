@@ -4,7 +4,7 @@
   "nav.lang.de": "Deutsch",
 
   "preview.title": "Visual Preview",
-  "preview.subtitle": "Plates are proportional; the motif spans them continuously.",
+  "preview.subtitle": "Plates scale; motif flows across.",
   "preview.export": "Export PNG",
   "preview.url.tip": "Tip: needs a CORS-enabled image URL.",
   "preview.url.error": "Image failed to load. Check the URL.",
