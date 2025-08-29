@@ -1,7 +1,7 @@
-import { parseLocaleNumber } from "../../utils/number";
+import { parseLocaleNumber } from "../../../utils/number";
 import { Label } from "@radix-ui/react-label";
-import { Input } from "../ui/input";
-import { PlateFieldProps } from "../../utils/types";
+import { Input } from "../../ui/input";
+import { PlateFieldProps } from "../../../utils/types";
 import { useIntl } from "react-intl";
 
 export default function PlateField({

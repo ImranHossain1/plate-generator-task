@@ -2,18 +2,7 @@ import { useCallback } from "react";
 import { Group, Image as KonvaImage } from "react-konva";
 import Konva from "konva";
 import GridFallback from "./GridFallback";
-import { CropRect } from "../../../utils/types";
-
-type PlateBlockProps = {
-  id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  crop: CropRect | null;
-  sourceImg: CanvasImageSource | null;
-  onRef: (node: Konva.Group | null) => void;
-};
+import { PlateBlockProps } from "../../../../utils/types";
 
 export default function PlateBlock({
   id,

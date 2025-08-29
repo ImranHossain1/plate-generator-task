@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Konva from "konva";
 import type { Stage as KonvaStage } from "konva/lib/Stage";
-import AppCard from "../common/AppCard";
-import CanvasStage from "./plateComponents/CanvasStage";
-import PlateBlock from "./plateComponents/PlateBlock";
-import RemovedGhostCmp from "./plateComponents/RemovedGhost";
+import AppCard from "../../common/AppCard";
+import CanvasStage from "./Konva/CanvasStage";
+import PlateBlock from "./Konva/PlateBlock";
+import RemovedGhostCmp from "./Konva/RemovedGhost";
 import { useIntl } from "react-intl";
 import {
   computeSizes,
@@ -12,7 +12,7 @@ import {
   makeMirroredStripe,
   getResizeChanges,
   computeRemovedGhost,
-} from "../../utils/helpers";
+} from "../../../utils/helpers";
 import {
   CoverRect,
   RemovedGhost,
@@ -21,9 +21,9 @@ import {
   PAD,
   GAP,
   Plate,
-} from "../../utils/types";
-import AppButton from "../common/AppButton";
-import ReorderLayer from "./plateComponents/ReorderLayer";
+} from "../../../utils/types";
+import AppButton from "../../common/AppButton";
+import ReorderLayer from "./dnd/ReorderLayer";
 
 export default function PlateCanvas({
   plates,
@@ -218,7 +218,6 @@ export default function PlateCanvas({
     >
       <div className="w-full max-w-full h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96 overflow-x-auto overflow-y-hidden relative">
         <div className="min-w-min h-full flex items-center justify-center">
-          {/* relative wrapper matches Stage dimensions to align overlays */}
           <div
             className="relative"
             style={{ width: stageWidth, height: stageHeight }}

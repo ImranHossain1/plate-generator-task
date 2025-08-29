@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { FormattedMessage } from "react-intl";
-import PlateCanvas from "./PlateCanvas";
+import PlateCanvas from "./plateComponents/PlateCanvas";
 import { PreviewCardProps } from "../../utils/types";
 
 export default function PreviewCard({
