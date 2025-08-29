@@ -1,6 +1,5 @@
 import { CoverRect, CropRect } from "../types";
 
-/** Build the crop rect for a single plate within the global cover crop. */
 export function buildPlateCrop(
   globalSrc: CoverRect,
   pxW: number,
