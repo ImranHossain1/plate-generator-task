@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { Group, Image as KonvaImage } from "react-konva";
 import Konva from "konva";
 import GridFallback from "./GridFallback";
-import { CropRect } from "../../utils/types";
+import { CropRect } from "../../../utils/types";
 
 type PlateBlockProps = {
   id: string;
