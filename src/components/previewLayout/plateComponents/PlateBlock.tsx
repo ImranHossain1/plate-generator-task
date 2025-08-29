@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { Group, Image as KonvaImage } from "react-konva";
 import Konva from "konva";
 import GridFallback from "./GridFallback";

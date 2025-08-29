@@ -1,4 +1,3 @@
-import React from "react";
 import { Group, Rect } from "react-konva";
 
 type GridFallbackProps = {

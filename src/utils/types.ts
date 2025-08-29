@@ -1,8 +1,19 @@
 import { ComponentProps } from "react";
 import { Card } from "../components/ui/Card";
-import { Plate, PlateConfig } from "../constants/plates";
 import type { Stage as KonvaStage } from "konva/lib/Stage";
 import { PrimitiveType } from "react-intl";
+
+/* ─── Plates ────────────────────────────── */
+export type Plate = {
+  id: string;
+  w: number;
+  h: number;
+};
+
+export type PlateConfig = {
+  motifUrl: string;
+  plates: Plate[];
+};
 
 /* ─── DOMAIN / DATA TYPES ────────────────────────────── */
 export type Unit = "cm" | "inch";

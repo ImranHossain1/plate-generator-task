@@ -1,12 +1,12 @@
 // src/components/plates/helper.ts
 
-import { Plate } from "../constants/plates";
 import {
   CoverRect,
   CropRect,
   GAP,
   MAX_STAGE_WIDTH,
   PAD,
+  Plate,
   RemovedGhost,
   ResizeChange,
 } from "./types";

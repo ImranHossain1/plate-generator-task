@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import usePersistentState from "../../hooks/usePersistentState";
-import {
-  DEFAULT_PLATE_CONFIG,
-  type Plate,
-  type PlateConfig,
-} from "../../constants/plates";
+import { DEFAULT_PLATE_CONFIG } from "../../constants/plates";
 import useImage from "../../hooks/useImage";
 import {
   addPlateHelper,
@@ -14,10 +10,9 @@ import {
   resetConfigHelper,
   updatePlateHelper,
 } from "../../utils/plates";
-
 import PreviewCard from "../../components/previewLayout/PreviewCard";
 import ConfigCard from "../../components/configLayout/ConfigCard";
-import { Unit } from "../../utils/types";
+import { Plate, PlateConfig, Unit } from "../../utils/types";
 
 export default function HomePage() {
   const [cfg, setCfg] = usePersistentState<PlateConfig>(

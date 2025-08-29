@@ -1,4 +1,3 @@
-import React from "react";
 import { Group, Image as KonvaImage, Rect } from "react-konva";
 import Konva from "konva";
 import { ANIM_S, RemovedGhostProps } from "../../../utils/types";
