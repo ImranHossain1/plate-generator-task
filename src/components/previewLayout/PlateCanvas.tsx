@@ -23,6 +23,7 @@ import {
   Plate,
 } from "../../utils/types";
 import AppButton from "../common/AppButton";
+import ReorderLayer from "./plateComponents/ReorderLayer";
 
 export default function PlateCanvas({
   plates,
@@ -32,12 +33,16 @@ export default function PlateCanvas({
   exportPNG,
   recentlyAdded = null,
   recentlyRemoved = null,
+  onReorder,
 }: PlateCanvasProps) {
   const stageRef = useRef<KonvaStage | null>(null);
   const nodeMapRef = useRef<Record<string, Konva.Group | null>>({});
   const prevPlatesRef = useRef<Plate[]>([]);
+  const lastAddedRef = useRef<string | null>(null);
+
   const [removedGhost, setRemovedGhost] = useState<RemovedGhost>(null);
   const intl = useIntl();
+
   // sizing
   const { totalWidth, pxW, pxH, stageWidth, stageHeight } = useMemo(() => {
     const s = computeSizes(plates);
@@ -79,28 +84,36 @@ export default function PlateCanvas({
   const globalSrc: CoverRect | null =
     sourceImg && sW > 0 && sH > 0 ? getCoverSrcRect(sW, sH, pxW, pxH) : null;
 
-  // animations
+  // detect only *real* size changes (helper has epsilon guard)
   const resizeChanges = useMemo(
     () => getResizeChanges(prevPlatesRef.current, plates),
     [plates]
   );
 
+  // --- Animation: play "recently added" ONCE per id ---
   useEffect(() => {
-    if (recentlyAdded) {
-      const node = nodeMapRef.current[recentlyAdded];
-      if (node) {
-        node.scale({ x: 0.85, y: 0.85 });
-        node.opacity(0);
-        new Konva.Tween({
-          node,
-          duration: ANIM_S,
-          scaleX: 1,
-          scaleY: 1,
-          opacity: 1,
-          easing: Konva.Easings.EaseInOut,
-        }).play();
-      }
-    }
+    if (!recentlyAdded) return;
+    if (lastAddedRef.current === recentlyAdded) return; // already played
+    lastAddedRef.current = recentlyAdded;
+
+    const node = nodeMapRef.current[recentlyAdded];
+    if (!node) return;
+
+    node.scale({ x: 0.85, y: 0.85 });
+    node.opacity(0);
+    new Konva.Tween({
+      node,
+      duration: ANIM_S,
+      scaleX: 1,
+      scaleY: 1,
+      opacity: 1,
+      easing: Konva.Easings.EaseInOut,
+    }).play();
+  }, [recentlyAdded]);
+
+  // --- Animation: subtle grow/shrink only when w/h actually changed ---
+  useEffect(() => {
+    if (!resizeChanges.length) return;
     for (const change of resizeChanges) {
       const node = nodeMapRef.current[change.id];
       if (!node) continue;
@@ -116,7 +129,7 @@ export default function PlateCanvas({
         easing: Konva.Easings.EaseInOut,
       }).play();
     }
-  }, [recentlyAdded, resizeChanges]);
+  }, [resizeChanges]);
 
   // snapshot for ghost
   const lastSnapshotRef = useRef<{
@@ -141,6 +154,7 @@ export default function PlateCanvas({
     prevPlatesRef.current = plates.map((p) => ({ ...p }));
   }, [plates, pxW, pxH, globalSrc]);
 
+  // removed ghost
   useEffect(() => {
     if (!recentlyRemoved) return;
     const {
@@ -163,7 +177,36 @@ export default function PlateCanvas({
     return () => clearTimeout(t);
   }, [recentlyRemoved, sourceImg]);
 
-  let cursorX = 0;
+  // ---- layout rects for overlay ----
+  const plateRects: Array<{
+    id: string;
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  }> = [];
+  const gapXs: number[] = [];
+
+  let cursorXForRects = 0;
+  gapXs.push(PAD + 0); // gap 0 (before first)
+  for (const p of plates) {
+    const w = Number(p.w) || 0;
+    const h = Number(p.h) || 0;
+    const drawW = Math.max(0, w - GAP);
+    const x = cursorXForRects;
+    const y = pxH - h;
+
+    plateRects.push({
+      id: p.id,
+      left: PAD + x,
+      top: PAD + y,
+      width: drawW,
+      height: h,
+    });
+
+    cursorXForRects += w;
+    gapXs.push(PAD + cursorXForRects); // gap after this plate
+  }
 
   return (
     <AppCard
@@ -175,50 +218,74 @@ export default function PlateCanvas({
     >
       <div className="w-full max-w-full h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96 overflow-x-auto overflow-y-hidden relative">
         <div className="min-w-min h-full flex items-center justify-center">
-          <CanvasStage
-            ref={stageRef}
-            width={stageWidth}
-            height={stageHeight}
-            pad={PAD}
+          {/* relative wrapper matches Stage dimensions to align overlays */}
+          <div
+            className="relative"
+            style={{ width: stageWidth, height: stageHeight }}
           >
-            {plates.map((p) => {
-              const w = Number(p.w) || 0;
-              const h = Number(p.h) || 0;
-              const x = cursorX;
-              const y = pxH - h;
-              const drawW = Math.max(0, w - GAP);
-              const drawH = h;
-              const id = p.id;
+            <CanvasStage
+              ref={stageRef}
+              width={stageWidth}
+              height={stageHeight}
+              pad={PAD}
+            >
+              {plates.map((p) => {
+                const w = Number(p.w) || 0;
+                const h = Number(p.h) || 0;
+                const x =
+                  (plateRects.find((r) => r.id === p.id)?.left ?? PAD) - PAD;
+                const y = pxH - h;
+                const drawW = Math.max(0, w - GAP);
+                const drawH = h;
+                const id = p.id;
 
-              const crop =
-                sourceImg && globalSrc
-                  ? {
-                      x: globalSrc.x + (globalSrc.w * cursorX) / pxW,
-                      y: globalSrc.y + (globalSrc.h * (pxH - h)) / pxH,
-                      width: (globalSrc.w * drawW) / pxW,
-                      height: (globalSrc.h * drawH) / pxH,
-                    }
-                  : null;
+                const crop =
+                  sourceImg && globalSrc
+                    ? {
+                        x: globalSrc.x + (globalSrc.w * x) / pxW,
+                        y: globalSrc.y + (globalSrc.h * (pxH - h)) / pxH,
+                        width: (globalSrc.w * drawW) / pxW,
+                        height: (globalSrc.h * drawH) / pxH,
+                      }
+                    : null;
 
-              const el = (
-                <PlateBlock
-                  key={id}
-                  id={id}
-                  x={x}
-                  y={y}
-                  width={drawW}
-                  height={drawH}
-                  crop={crop}
-                  sourceImg={sourceImg}
-                  onRef={(node) => (nodeMapRef.current[id] = node)}
-                />
-              );
-              cursorX += w;
-              return el;
-            })}
+                return (
+                  <PlateBlock
+                    key={id}
+                    id={id}
+                    x={x}
+                    y={y}
+                    width={drawW}
+                    height={drawH}
+                    crop={crop}
+                    sourceImg={sourceImg}
+                    onRef={(node) => (nodeMapRef.current[id] = node)}
+                  />
+                );
+              })}
 
-            <RemovedGhostCmp ghost={removedGhost} sourceImg={sourceImg} />
-          </CanvasStage>
+              <RemovedGhostCmp ghost={removedGhost} sourceImg={sourceImg} />
+            </CanvasStage>
+
+            {/* DnD overlay */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+                zIndex: 10,
+              }}
+            >
+              <ReorderLayer
+                plateRects={plateRects}
+                gapXs={gapXs}
+                stageWidth={stageWidth}
+                stageHeight={stageHeight}
+                onReorder={(from, to) => onReorder?.(from, to)}
+                dragHandle="full"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </AppCard>

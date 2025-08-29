@@ -10,6 +10,7 @@ export default function PreviewCard({
   handleCanvasRef,
   recentlyAdded,
   exportPNG,
+  onReorder,
 }: PreviewCardProps) {
   const recentlyRemovedId = useMemo(
     () => plates.find((p) => p.status === "removing")?.id ?? null,
@@ -25,6 +26,7 @@ export default function PreviewCard({
         onCanvasRef={handleCanvasRef}
         recentlyAdded={recentlyAdded}
         recentlyRemoved={recentlyRemovedId}
+        onReorder={onReorder}
       />
 
       {imgErr && (

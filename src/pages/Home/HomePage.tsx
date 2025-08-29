@@ -12,7 +12,8 @@ import {
 } from "../../utils/plates";
 import PreviewCard from "../../components/previewLayout/PreviewCard";
 import ConfigCard from "../../components/configLayout/ConfigCard";
-import { Plate, PlateConfig, Unit } from "../../utils/types";
+import { Plate, PlateConfig, Unit, ANIM_S } from "../../utils/types";
+import { arrayMove } from "../../utils/helpers";
 
 export default function HomePage() {
   const [cfg, setCfg] = usePersistentState<PlateConfig>(
@@ -27,6 +28,19 @@ export default function HomePage() {
     plates[0]?.id ?? null
   );
   const [unit, setUnit] = useState<Unit>("cm");
+
+  useEffect(() => {
+    if (!recentlyAdded) return;
+    const t = setTimeout(() => setRecentlyAdded(null), ANIM_S * 1000);
+    return () => clearTimeout(t);
+  }, [recentlyAdded]);
+
+  const handleReorder = (from: number, to: number) => {
+    setCfg((prev) => ({
+      ...prev,
+      plates: arrayMove(prev.plates, from, to),
+    }));
+  };
 
   useEffect(() => {
     if (!plates.find((p) => p.id === activeId)) {
@@ -44,7 +58,6 @@ export default function HomePage() {
 
   const removePlate = (id: string) => removePlateHelper(cfg, id, setCfg);
 
-  // export
   const exportCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const handleCanvasRef = (c: HTMLCanvasElement | null) => {
     exportCanvasRef.current = c;
@@ -64,6 +77,7 @@ export default function HomePage() {
             handleCanvasRef={handleCanvasRef}
             recentlyAdded={recentlyAdded}
             exportPNG={exportPNG}
+            onReorder={handleReorder}
           />
         </div>
 

@@ -1,5 +1,3 @@
-// src/components/plates/helper.ts
-
 import {
   CoverRect,
   CropRect,
@@ -11,6 +9,12 @@ import {
   ResizeChange,
 } from "./types";
 
+export const arrayMove = <T>(arr: T[], from: number, to: number) => {
+  const copy = [...arr];
+  const [item] = copy.splice(from, 1);
+  copy.splice(to, 0, item);
+  return copy;
+};
 /** Compute a cover-crop rectangle for drawing an image into a destination box. */
 export function getCoverSrcRect(
   imgW: number,
@@ -84,16 +88,20 @@ export function buildPlateCrop(
 }
 
 /** Detect plates that grew/shrank to trigger subtle scale tweens. */
-export function getResizeChanges(prev: Plate[], next: Plate[]): ResizeChange[] {
+export function getResizeChanges(
+  prev: Plate[],
+  next: Plate[],
+  eps = 1e-6
+): ResizeChange[] {
   const byId = new Map(prev.map((p) => [p.id, p]));
   const changes: ResizeChange[] = [];
-  for (const p of next) {
-    const before = byId.get(p.id);
-    if (!before) continue;
-    if (before.w !== p.w || before.h !== p.h) {
-      const bigger =
-        Number(p.w) > Number(before.w) || Number(p.h) > Number(before.h);
-      changes.push({ id: p.id, type: bigger ? "grow" : "shrink" });
+  for (const n of next) {
+    const p = byId.get(n.id);
+    if (!p) continue; // creations handled by 'recentlyAdded'
+    const dw = Number(n.w) - Number(p.w);
+    const dh = Number(n.h) - Number(p.h);
+    if (Math.abs(dw) > eps || Math.abs(dh) > eps) {
+      changes.push({ id: n.id, type: dw + dh >= 0 ? "grow" : "shrink" });
     }
   }
   return changes;
