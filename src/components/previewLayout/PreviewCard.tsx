@@ -19,6 +19,14 @@ export default function PreviewCard({
 
   return (
     <div>
+      <div className="px-1 mb-2">
+        <h3 className="text-base font-semibold">
+          <FormattedMessage id="preview.title" />
+        </h3>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          <FormattedMessage id="preview.subtitle" />
+        </p>
+      </div>
       <PlateCanvas
         plates={plates}
         img={img}

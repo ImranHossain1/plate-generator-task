@@ -6,6 +6,7 @@ import CanvasStage from "./Konva/CanvasStage";
 import PlateBlock from "./Konva/PlateBlock";
 import RemovedGhostCmp from "./Konva/RemovedGhost";
 import { useIntl } from "react-intl";
+import { Minus, Plus } from "lucide-react";
 import {
   computeSizes,
   getCoverSrcRect,
@@ -232,29 +233,35 @@ export default function PlateCanvas({
     <AppCard
       className="min-w-0 bg-gray-100"
       contentClassName="p-0"
-      title={intl.formatMessage({ id: "preview.title" })}
-      subtitle={intl.formatMessage({ id: "preview.subtitle" })}
       action={
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-md bg-white/70 px-2 py-1 shadow">
-            <button
-              className="px-2 py-1"
+        <div className="flex w-full items-center justify-between gap-3">
+          {/* left: zoom controls */}
+          <div className="flex items-center gap-1">
+            <AppButton
+              variant="secondary"
+              size="sm"
               onClick={zoomOut}
               aria-label="Zoom out"
-            >
-              −
-            </button>
-            <button
-              className="px-2 py-1"
+              icon={<Minus className="h-4 w-4" />}
+            />
+            <AppButton
+              variant="secondary"
+              size="sm"
               onClick={resetZoom}
               aria-label="Reset zoom"
             >
               {Math.round(previewScale * 100)}%
-            </button>
-            <button className="px-2 py-1" onClick={zoomIn} aria-label="Zoom in">
-              +
-            </button>
+            </AppButton>
+            <AppButton
+              variant="secondary"
+              size="sm"
+              onClick={zoomIn}
+              aria-label="Zoom in"
+              icon={<Plus className="h-4 w-4" />}
+            />
           </div>
+
+          {/* right: export */}
           <AppButton msgId="preview.export" onClick={exportPNG} />
         </div>
       }
