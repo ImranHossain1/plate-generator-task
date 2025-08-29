@@ -21,11 +21,17 @@ Localization via **react-intl**, components via **shadcn/ui**, styling via **Tai
 
 ---
 
+---
+
+## 🔗 Live Demo
+
+[Live Server on Vercel](https://plate-generator-task.vercel.app/)
+
 ## ✨ Features
 
 - **Interactive drag & drop**: reposition the motif image directly in the preview using **dnd-kit**.
 - **Live visual preview** with smooth add/remove/resize transitions (shadcn + Tailwind / Headless UI `Transition`).
-- **Continuous motif** across plates (`cover`).
+- **Continuous motif** across plates.
 - **Unit toggle**: centimeters ⇄ inches (with validation & locale formatting).
 - **i18n**: English & German via **react-intl**.
 - **PNG export** of the preview canvas.
@@ -157,12 +163,6 @@ export const DEFAULT_PLATE_CONFIG = {
 - **Layout shrinks on mobile** → ensure the preview wrapper has `overflow-x-auto` and the canvas uses `shrink-0`. The right config column should be `md:flex-none` with a fixed width.
 - **Numbers parse incorrectly** → check `parseLocaleNumber` and ensure inputs pass strings; use `<FormattedNumber>` for output.
 - **Dragging feels offset** → verify the preview container’s CSS (positioning/scroll) and that dnd-kit sensors are configured with the correct coordinate getter for scrolling containers.
-
----
-
-## 🔗 Live Demo
-
-[Live Server on Vercel](https://plate-generator-task.vercel.app/)
 
 ---
 
