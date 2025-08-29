@@ -1,6 +1,6 @@
 import { Transition } from "@headlessui/react";
 import PlateRow from "./PlateRow";
-import { PlatesListProps } from "../../utils/types";
+import { PlatesListProps } from "../../../utils/types";
 
 export default function PlatesList({
   plates,

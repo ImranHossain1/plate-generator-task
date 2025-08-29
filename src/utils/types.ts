@@ -2,12 +2,32 @@ import { ComponentProps } from "react";
 import { Card } from "../components/ui/Card";
 import type { Stage as KonvaStage } from "konva/lib/Stage";
 import { PrimitiveType } from "react-intl";
+import Konva from "konva";
 
-/* ─── Plates ────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────────────────
+ * Domain types (data model)
+ * ────────────────────────────────────────────────────────────────────────── */
+
+export type Unit = "cm" | "inch";
+
 export type Plate = {
   id: string;
   w: number;
   h: number;
+};
+
+export type PlateBlockProps = {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  crop: CropRect | null;
+  sourceImg: CanvasImageSource | null;
+  onRef: (node: Konva.Group | null) => void;
+};
+export type PlateWithStatus = Plate & {
+  status?: "active" | "removing" | "idle";
 };
 
 export type PlateConfig = {
@@ -15,10 +35,9 @@ export type PlateConfig = {
   plates: Plate[];
 };
 
-/* ─── DOMAIN / DATA TYPES ────────────────────────────── */
-export type Unit = "cm" | "inch";
-
-export type PlateWithStatus = Plate & { status?: "active" | "removing" };
+/* ────────────────────────────────────────────────────────────────────────────
+ * Geometry / rendering helpers
+ * ────────────────────────────────────────────────────────────────────────── */
 
 export type CoverRect = { x: number; y: number; w: number; h: number };
 export type CropRect = { x: number; y: number; width: number; height: number };
@@ -34,7 +53,25 @@ export type RemovedGhost = {
 
 export type ResizeChange = { id: string; type: "grow" | "shrink" };
 
-/* ─── REACT COMPONENT PROP TYPES ─────────────────────── */
+/** Absolute rect for each plate used by the DnD overlay. */
+export type PlateRect = {
+  id: string;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Reusable callbacks
+ * ────────────────────────────────────────────────────────────────────────── */
+
+export type OnReorder = (from: number, to: number) => void;
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * React component prop types
+ * ────────────────────────────────────────────────────────────────────────── */
+
 export type CardDomProps = Omit<
   ComponentProps<typeof Card>,
   "children" | "className"
@@ -53,7 +90,7 @@ export type PlateFieldProps = {
 };
 
 export type PlatesActionsProps = {
-  plates: unknown[];
+  plates: Plate[];
   addPlate: () => void;
   resetToDefaults: () => void;
   unit: Unit;
@@ -69,10 +106,11 @@ export type PlateCanvasProps = {
   recentlyAdded?: string | null;
   recentlyRemoved?: string | null;
   exportPNG: () => void;
+  onReorder?: OnReorder;
 };
 
 export type PlatesListProps = {
-  plates: (Plate & { status?: "removing" | "idle" })[];
+  plates: PlateWithStatus[];
   recentlyAdded?: string | null;
   activeId: string | null;
   setActiveId: (id: string | null) => void;
@@ -84,10 +122,22 @@ export type PlatesListProps = {
 export type PreviewCardProps = {
   plates: PlateWithStatus[];
   img: HTMLImageElement | null;
-  imgErr: string;
-  handleCanvasRef: (c: HTMLCanvasElement | null) => void;
-  recentlyAdded: string | null;
+  imgErr?: string | null;
+  handleCanvasRef?: (el: HTMLCanvasElement | null) => void;
+  recentlyAdded?: string | null;
   exportPNG: () => void;
+  onReorder?: OnReorder;
+};
+
+/** Props for the DnD overlay component. */
+export type ReorderLayerProps = {
+  plateRects: PlateRect[];
+  gapXs: number[];
+  stageWidth: number;
+  stageHeight: number;
+  dragHandle?: "full" | "edge";
+  onReorder?: OnReorder;
+  scale?: number;
 };
 
 export type ConfigCardProps = {
@@ -130,15 +180,20 @@ export type PlateRowProps = {
   recentlyRemoved?: string | null;
 };
 
-/* ─── CONSTANTS (UI / LAYOUT CONFIG) ─────────────────── */
+/* ────────────────────────────────────────────────────────────────────────────
+ * UI / layout constants
+ * ────────────────────────────────────────────────────────────────────────── */
+
 export const PAD = 24;
 export const GAP = 4;
 export const ANIM_S = 0.5;
 export const MAX_STAGE_WIDTH = 12000;
 
-/* ─── INTERNATIONALIZATION / LOCALE ──────────────────── */
+/* ────────────────────────────────────────────────────────────────────────────
+ * Internationalization
+ * ────────────────────────────────────────────────────────────────────────── */
+
 export type Locale = "en" | "de";
 export type Messages = Record<string, string>;
-
 export type IntlValues = Record<string, PrimitiveType>;
 export type ErrorMsg = { id: string; values?: IntlValues } | null;

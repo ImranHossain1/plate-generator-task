@@ -1,7 +1,7 @@
 import { FormattedMessage, FormattedNumber } from "react-intl";
-import { PLATE_LIMITS } from "../../constants/plates";
-import AppButton from "../common/AppButton";
-import { PlatesActionsProps } from "../../utils/types";
+import { PLATE_LIMITS } from "../../../constants/plates";
+import AppButton from "../../common/AppButton";
+import { PlatesActionsProps } from "../../../utils/types";
 export default function PlatesActions({
   plates,
   addPlate,

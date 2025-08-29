@@ -1,6 +1,6 @@
 import { Group, Image as KonvaImage, Rect } from "react-konva";
 import Konva from "konva";
-import { ANIM_S, RemovedGhostProps } from "../../../utils/types";
+import { ANIM_S, RemovedGhostProps } from "../../../../utils/types";
 
 export default function RemovedGhost({ ghost, sourceImg }: RemovedGhostProps) {
   if (!ghost) return null;

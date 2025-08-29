@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { FormattedMessage } from "react-intl";
-import PlateCanvas from "./PlateCanvas";
+import PlateCanvas from "./plateComponents/PlateCanvas";
 import { PreviewCardProps } from "../../utils/types";
 
 export default function PreviewCard({
@@ -10,6 +10,7 @@ export default function PreviewCard({
   handleCanvasRef,
   recentlyAdded,
   exportPNG,
+  onReorder,
 }: PreviewCardProps) {
   const recentlyRemovedId = useMemo(
     () => plates.find((p) => p.status === "removing")?.id ?? null,
@@ -18,6 +19,14 @@ export default function PreviewCard({
 
   return (
     <div>
+      <div className="px-1 mb-2">
+        <h3 className="text-base font-semibold">
+          <FormattedMessage id="preview.title" />
+        </h3>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          <FormattedMessage id="preview.subtitle" />
+        </p>
+      </div>
       <PlateCanvas
         plates={plates}
         img={img}
@@ -25,6 +34,7 @@ export default function PreviewCard({
         onCanvasRef={handleCanvasRef}
         recentlyAdded={recentlyAdded}
         recentlyRemoved={recentlyRemovedId}
+        onReorder={onReorder}
       />
 
       {imgErr && (

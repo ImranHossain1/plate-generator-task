@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import PlateField from "./PlateField";
-import { parseLocaleNumber } from "../../utils/number";
-import { PLATE_LIMITS } from "../../constants/plates";
-import { Badge } from "../ui/badge";
-import AppButton from "../common/AppButton";
-import AppCard from "../common/AppCard";
-import { ErrorMsg, PlateRowProps } from "../../utils/types";
+import { parseLocaleNumber } from "../../../utils/number";
+import { PLATE_LIMITS } from "../../../constants/plates";
+import { Badge } from "../../ui/badge";
+import AppButton from "../../common/AppButton";
+import AppCard from "../../common/AppCard";
+import { ErrorMsg, PlateRowProps } from "../../../utils/types";
 
 export default function PlateRow({
   plate,
