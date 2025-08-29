@@ -30,7 +30,6 @@ export default function ReorderLayer({
   const handleDragStart = (_e: DragStartEvent) => setIsDragging(true);
   const handleDragCancel = (_e: DragCancelEvent) => setIsDragging(false);
 
-  // gap k means "insert BEFORE item k". After removal, indices shift.
   const computeInsertIndex = (gapIndex: number, fromIndex: number) =>
     gapIndex - (fromIndex < gapIndex ? 1 : 0);
 
@@ -47,8 +46,7 @@ export default function ReorderLayer({
     if (fromIndex < 0 || Number.isNaN(gapIndex)) return;
 
     const insertAt = computeInsertIndex(gapIndex, fromIndex);
-    if (insertAt === fromIndex) return; // same/immediately-after → no-op
-
+    if (insertAt === fromIndex) return;
     onReorder(fromIndex, insertAt);
   };
 

@@ -51,7 +51,6 @@ export default function PlateCanvas({
   const zoomIn = () => setPreviewScale((s) => clamp(s + 0.25));
   const resetZoom = () => setPreviewScale(1);
 
-  // sizing (unscaled)
   const { totalWidth, pxW, pxH, stageWidth, stageHeight } = useMemo(() => {
     const s = computeSizes(plates);
     return {
@@ -63,7 +62,6 @@ export default function PlateCanvas({
     };
   }, [plates]);
 
-  // mirror if needed
   const { sourceImg, sW, sH } = useMemo(() => {
     const ready = !!img && img.width > 0 && img.height > 0;
     const needsMirror = totalWidth > 300 && ready;
@@ -77,7 +75,6 @@ export default function PlateCanvas({
     return makeMirroredStripe(img);
   }, [img, totalWidth]);
 
-  // refs exposure
   useEffect(() => onStageRef?.(stageRef.current), [onStageRef]);
   useEffect(() => {
     if (!onCanvasRef) return;
@@ -117,7 +114,6 @@ export default function PlateCanvas({
     }).play();
   }, [recentlyAdded]);
 
-  // grow/shrink tween
   useEffect(() => {
     if (!resizeChanges.length) return;
     for (const change of resizeChanges) {
@@ -137,7 +133,6 @@ export default function PlateCanvas({
     }
   }, [resizeChanges]);
 
-  // snapshot for ghost
   const lastSnapshotRef = useRef<{
     prevPlates: Plate[];
     pxW: number;
@@ -160,7 +155,6 @@ export default function PlateCanvas({
     prevPlatesRef.current = plates.map((p) => ({ ...p }));
   }, [plates, pxW, pxH, globalSrc]);
 
-  // removed ghost
   useEffect(() => {
     if (!recentlyRemoved) return;
     const {
@@ -183,7 +177,6 @@ export default function PlateCanvas({
     return () => clearTimeout(t);
   }, [recentlyRemoved, sourceImg]);
 
-  // ---- layout rects (UNSCALED) ----
   const plateRects: Array<{
     id: string;
     left: number;
