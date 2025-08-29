@@ -115,7 +115,7 @@ npm run preview
 - **Rendering**: uses **React-Konva** (`Stage`, `Layer`, `Group`, `Image`) for high-performance canvas rendering.
 - **Cropping**: global **cover-crop** plus per-plate **crop** calculations keep the motif continuous.
 - **Mirroring**: when total width > **300 cm**, an offscreen `[img | mirrored img]` stripe provides a seamless continuation.
-- **Export**: `Export PNG` captures the canvas and triggers a download.
+- **Export**: `Export PNG` captures the canvas and triggers the download.
 
 > **CORS Note:** For remote images, the server must allow cross-origin access. Otherwise the canvas becomes tainted and PNG export will fail. Use the sample image or a CORS-enabled URL.
 
@@ -167,7 +167,7 @@ export const DEFAULT_PLATE_CONFIG = {
 
 - **PNG export fails** → likely a CORS issue. Try the sample image or host your image with proper `Access-Control-Allow-Origin`.
 - **Layout shrinks on mobile** → ensure the preview wrapper has `overflow-x-auto` and the canvas uses `shrink-0`. The right config column should be `md:flex-none` with a fixed width.
-- **Numbers parse wrong** → check `parseLocaleNumber` and ensure inputs pass strings; use `<FormattedNumber>` for output.
+- **Numbers parse incorrectly** → check `parseLocaleNumber` and ensure inputs pass strings; use `<FormattedNumber>` for output.
 - **Dragging feels offset** → verify the preview container’s CSS (positioning/scroll) and that dnd-kit sensors are configured with the correct coordinate getter for scrolling containers.
 
 ---
@@ -180,4 +180,4 @@ export const DEFAULT_PLATE_CONFIG = {
 
 ## 🙌 Credits
 
-Built by **Imran Hossain**.
+Developed by **Imran Hossain**.
