@@ -67,8 +67,7 @@ Localization via **react-intl**, components via **shadcn/ui**, styling via **Tai
 
 ```bash
 # clone your repo (choose one)
-# SSH (requires SSH key setup):
-git clone git@github.com:ImranHossain1/plate-generator-task.git
+
 # HTTPS (works everywhere):
 git clone https://github.com/ImranHossain1/plate-generator-task.git
 
