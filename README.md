@@ -33,17 +33,6 @@ Localization via **react-intl**, components via **shadcn/ui**, styling via **Tai
 - **Mobile-first**: horizontal scroll on overflow; no layout squish.
 - **Accessible**: keyboard focus/select on plate rows; ARIA labels on controls.
 
----
-
-## 🆕 What’s New
-
-- Replaced **framer-motion** with **dnd-kit** for drag-and-drop interaction within the image preview.
-- Transitions now rely on **Headless UI** `Transition` + CSS utilities (no framer-motion).
-
-> Note: This project **does not use framer-motion** and **does not implement theme/dark mode colors**.
-
----
-
 ## 🧱 Tech Stack
 
 - **React 19**, **TypeScript**, **Vite**
