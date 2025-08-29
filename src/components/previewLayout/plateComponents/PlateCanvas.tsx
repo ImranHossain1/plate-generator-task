@@ -43,6 +43,13 @@ export default function PlateCanvas({
   const [removedGhost, setRemovedGhost] = useState<RemovedGhost>(null);
   const intl = useIntl();
 
+  // --- Preview Zoom (visual only; math stays 1px = 1cm) ---
+  const [previewScale, setPreviewScale] = useState(1);
+  const clamp = (v: number) => Math.min(3, Math.max(0.5, Number(v.toFixed(2))));
+  const zoomOut = () => setPreviewScale((s) => clamp(s - 0.25));
+  const zoomIn = () => setPreviewScale((s) => clamp(s + 0.25));
+  const resetZoom = () => setPreviewScale(1);
+
   // sizing
   const { totalWidth, pxW, pxH, stageWidth, stageHeight } = useMemo(() => {
     const s = computeSizes(plates);
@@ -84,16 +91,16 @@ export default function PlateCanvas({
   const globalSrc: CoverRect | null =
     sourceImg && sW > 0 && sH > 0 ? getCoverSrcRect(sW, sH, pxW, pxH) : null;
 
-  // detect only *real* size changes (helper has epsilon guard)
+  // detect only *real* size changes (epsilon guard in helper)
   const resizeChanges = useMemo(
     () => getResizeChanges(prevPlatesRef.current, plates),
     [plates]
   );
 
-  // --- Animation: play "recently added" ONCE per id ---
+  // Animation: play "recently added" ONCE per id
   useEffect(() => {
     if (!recentlyAdded) return;
-    if (lastAddedRef.current === recentlyAdded) return; // already played
+    if (lastAddedRef.current === recentlyAdded) return;
     lastAddedRef.current = recentlyAdded;
 
     const node = nodeMapRef.current[recentlyAdded];
@@ -111,7 +118,7 @@ export default function PlateCanvas({
     }).play();
   }, [recentlyAdded]);
 
-  // --- Animation: subtle grow/shrink only when w/h actually changed ---
+  // Animation: subtle grow/shrink only when w/h actually changed
   useEffect(() => {
     if (!resizeChanges.length) return;
     for (const change of resizeChanges) {
@@ -188,7 +195,7 @@ export default function PlateCanvas({
   const gapXs: number[] = [];
 
   let cursorXForRects = 0;
-  gapXs.push(PAD + 0); // gap 0 (before first)
+  gapXs.push(PAD + 0);
   for (const p of plates) {
     const w = Number(p.w) || 0;
     const h = Number(p.h) || 0;
@@ -205,7 +212,7 @@ export default function PlateCanvas({
     });
 
     cursorXForRects += w;
-    gapXs.push(PAD + cursorXForRects); // gap after this plate
+    gapXs.push(PAD + cursorXForRects);
   }
 
   return (
@@ -214,75 +221,110 @@ export default function PlateCanvas({
       contentClassName="p-0"
       title={intl.formatMessage({ id: "preview.title" })}
       subtitle={intl.formatMessage({ id: "preview.subtitle" })}
-      action={<AppButton msgId="preview.export" onClick={exportPNG} />}
+      action={
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 rounded-md bg-white/70 px-2 py-1 shadow">
+            <button
+              className="px-2 py-1"
+              onClick={zoomOut}
+              aria-label="Zoom out"
+            >
+              −
+            </button>
+            <button
+              className="px-2 py-1"
+              onClick={resetZoom}
+              aria-label="Reset zoom"
+            >
+              {Math.round(previewScale * 100)}%
+            </button>
+            <button className="px-2 py-1" onClick={zoomIn} aria-label="Zoom in">
+              +
+            </button>
+          </div>
+          <AppButton msgId="preview.export" onClick={exportPNG} />
+        </div>
+      }
     >
       <div className="w-full max-w-full h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96 overflow-x-auto overflow-y-hidden relative">
         <div className="min-w-min h-full flex items-center justify-center">
           <div
             className="relative"
-            style={{ width: stageWidth, height: stageHeight }}
+            style={{
+              width: stageWidth * previewScale,
+              height: stageHeight * previewScale,
+            }}
           >
-            <CanvasStage
-              ref={stageRef}
-              width={stageWidth}
-              height={stageHeight}
-              pad={PAD}
-            >
-              {plates.map((p) => {
-                const w = Number(p.w) || 0;
-                const h = Number(p.h) || 0;
-                const x =
-                  (plateRects.find((r) => r.id === p.id)?.left ?? PAD) - PAD;
-                const y = pxH - h;
-                const drawW = Math.max(0, w - GAP);
-                const drawH = h;
-                const id = p.id;
-
-                const crop =
-                  sourceImg && globalSrc
-                    ? {
-                        x: globalSrc.x + (globalSrc.w * x) / pxW,
-                        y: globalSrc.y + (globalSrc.h * (pxH - h)) / pxH,
-                        width: (globalSrc.w * drawW) / pxW,
-                        height: (globalSrc.h * drawH) / pxH,
-                      }
-                    : null;
-
-                return (
-                  <PlateBlock
-                    key={id}
-                    id={id}
-                    x={x}
-                    y={y}
-                    width={drawW}
-                    height={drawH}
-                    crop={crop}
-                    sourceImg={sourceImg}
-                    onRef={(node) => (nodeMapRef.current[id] = node)}
-                  />
-                );
-              })}
-
-              <RemovedGhostCmp ghost={removedGhost} sourceImg={sourceImg} />
-            </CanvasStage>
-
-            {/* DnD overlay */}
             <div
+              className="relative"
               style={{
-                position: "absolute",
-                inset: 0,
-                pointerEvents: "none",
-                zIndex: 10,
+                width: stageWidth,
+                height: stageHeight,
+                transform: `scale(${previewScale})`,
+                transformOrigin: "top left",
               }}
             >
-              <ReorderLayer
-                plateRects={plateRects}
-                gapXs={gapXs}
-                stageWidth={stageWidth}
-                stageHeight={stageHeight}
-                onReorder={(from, to) => onReorder?.(from, to)}
-                dragHandle="full"
-              />
+              <CanvasStage
+                ref={stageRef}
+                width={stageWidth}
+                height={stageHeight}
+                pad={PAD}
+              >
+                {plates.map((p) => {
+                  const w = Number(p.w) || 0;
+                  const h = Number(p.h) || 0;
+                  const x =
+                    (plateRects.find((r) => r.id === p.id)?.left ?? PAD) - PAD;
+                  const y = pxH - h;
+                  const drawW = Math.max(0, w - GAP);
+                  const drawH = h;
+                  const id = p.id;
+
+                  const crop =
+                    sourceImg && globalSrc
+                      ? {
+                          x: globalSrc.x + (globalSrc.w * x) / pxW,
+                          y: globalSrc.y + (globalSrc.h * (pxH - h)) / pxH,
+                          width: (globalSrc.w * drawW) / pxW,
+                          height: (globalSrc.h * drawH) / pxH,
+                        }
+                      : null;
+
+                  return (
+                    <PlateBlock
+                      key={id}
+                      id={id}
+                      x={x}
+                      y={y}
+                      width={drawW}
+                      height={drawH}
+                      crop={crop}
+                      sourceImg={sourceImg}
+                      onRef={(node) => (nodeMapRef.current[id] = node)}
+                    />
+                  );
+                })}
+
+                <RemovedGhostCmp ghost={removedGhost} sourceImg={sourceImg} />
+              </CanvasStage>
+
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  pointerEvents: "none",
+                  zIndex: 10,
+                }}
+              >
+                <ReorderLayer
+                  plateRects={plateRects}
+                  gapXs={gapXs}
+                  stageWidth={stageWidth}
+                  stageHeight={stageHeight}
+                  onReorder={(from, to) => onReorder?.(from, to)}
+                  dragHandle="full"
+                />
+              </div>
             </div>
           </div>
         </div>
