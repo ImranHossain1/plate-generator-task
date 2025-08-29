@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-// Generic hook: T = the type of your state
 export default function usePersistentState<T>(
   key: string,
   initialValue: T
@@ -11,18 +10,14 @@ export default function usePersistentState<T>(
       if (raw !== null) {
         return JSON.parse(raw) as T;
       }
-    } catch {
-      /* ignore */
-    }
+    } catch {}
     return initialValue;
   });
 
   useEffect(() => {
     try {
       localStorage.setItem(key, JSON.stringify(state));
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }, [key, state]);
 
   return [state, setState];

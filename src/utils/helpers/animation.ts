@@ -1,14 +1,10 @@
-// Animation helpers (diffs, ghosts)
 import { CoverRect, GAP, Plate, RemovedGhost, ResizeChange } from "../types";
 
-/** Detect plates that grew/shrank to trigger subtle scale tweens.
- * Uses area change (w*h) to decide direction. Ignores tiny noise via eps.
- */
 export function getResizeChanges(
   prev: Plate[],
   next: Plate[],
-  epsDim = 1e-6, // dimension noise tolerance
-  epsAreaRel = 1e-6 // relative area noise tolerance
+  epsDim = 1e-6,
+  epsAreaRel = 1e-6
 ): ResizeChange[] {
   const beforeById = new Map(prev.map((p) => [p.id, p]));
   const changes: ResizeChange[] = [];

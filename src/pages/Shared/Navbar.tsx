@@ -1,7 +1,8 @@
 import { NavLink } from "react-router-dom";
 import { useIntl } from "react-intl";
-import { Locale, useLocale } from "../../i18n";
+import { useLocale } from "../../i18n";
 import AppToggle from "../../components/common/AppToggle";
+import { Locale } from "../../utils/types";
 
 export default function Navbar() {
   const { locale, setLocale } = useLocale();

@@ -28,7 +28,6 @@ export default function HomePage() {
     plates[0]?.id ?? null
   );
   const [unit, setUnit] = useState<Unit>("cm");
-
   const [dismissErrorsKey, setDismissErrorsKey] = useState(0);
 
   useEffect(() => {
@@ -37,18 +36,18 @@ export default function HomePage() {
     return () => clearTimeout(t);
   }, [recentlyAdded]);
 
+  useEffect(() => {
+    if (!plates.find((p) => p.id === activeId)) {
+      setActiveId(plates[0]?.id ?? null);
+    }
+  }, [plates, activeId]);
+
   const handleReorder = (from: number, to: number) => {
     setCfg((prev) => ({
       ...prev,
       plates: arrayMove(prev.plates, from, to),
     }));
   };
-
-  useEffect(() => {
-    if (!plates.find((p) => p.id === activeId)) {
-      setActiveId(plates[0]?.id ?? null);
-    }
-  }, [plates, activeId]);
 
   const { totalWidth, maxHeight } = computePlateStats(plates);
 

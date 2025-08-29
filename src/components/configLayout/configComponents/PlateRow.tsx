@@ -31,7 +31,6 @@ export default function PlateRow({
   const [wError, setWError] = useState<ErrorMsg>(null);
   const [hError, setHError] = useState<ErrorMsg>(null);
 
-  // keep existing syncing
   useEffect(() => {
     const val =
       unit === "cm" ? plate.w : Math.round((plate.w / 2.54) * 100) / 100;
@@ -180,7 +179,6 @@ export default function PlateRow({
     md:grid md:grid-cols-[auto_1fr_auto] md:gap-4
   "
       >
-        {/* Badge */}
         <Badge
           variant={isActive ? "default" : "outline"}
           className="hidden h-9 w-9 select-none items-center justify-center rounded-lg p-0 text-xs font-semibold md:flex"
@@ -188,7 +186,6 @@ export default function PlateRow({
           {index + 1}
         </Badge>
 
-        {/* Fields */}
         <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-x-3 md:gap-x-6">
           <PlateField
             label={intl.formatMessage({ id: "plate.width" })}

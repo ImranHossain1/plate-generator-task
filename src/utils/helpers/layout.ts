@@ -1,4 +1,3 @@
-// Sizing / layout math
 import { MAX_STAGE_WIDTH, PAD, Plate } from "../types";
 
 export function computeSizes(plates: Plate[]) {

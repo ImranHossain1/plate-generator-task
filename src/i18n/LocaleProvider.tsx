@@ -14,9 +14,7 @@ function getInitialLocale(): Locale {
   try {
     const saved = localStorage.getItem("locale");
     if (saved === "de" || saved === "en") return saved;
-  } catch {
-    // ignore storage errors, fall back to navigator
-  }
+  } catch {}
 
   if (
     typeof navigator !== "undefined" &&

@@ -22,7 +22,7 @@ export default function DraggablePlate({
     width: rect.width,
     height: rect.height,
     pointerEvents: "auto",
-    transform: CSS.Translate.toString(transform), // no scale compensation
+    transform: CSS.Translate.toString(transform),
     cursor: "grab",
     outline: isDragging ? "2px solid rgba(0,0,0,0.25)" : "none",
     borderRadius: 6,

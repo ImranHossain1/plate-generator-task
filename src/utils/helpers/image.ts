@@ -1,4 +1,3 @@
-// Image utilities (cover fit, mirroring)
 import { CoverRect } from "../types";
 
 /** Compute a cover-crop rectangle for drawing an image into a destination box. */

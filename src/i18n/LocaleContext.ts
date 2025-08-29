@@ -1,5 +1,5 @@
 import React from "react";
-import type { Locale } from "./LocaleProvider";
+import { Locale } from "../utils/types";
 
 export const LocaleCtx = React.createContext<{
   locale: Locale;

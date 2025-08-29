@@ -92,13 +92,11 @@ export default function PlateCanvas({
   const globalSrc: CoverRect | null =
     sourceImg && sW > 0 && sH > 0 ? getCoverSrcRect(sW, sH, pxW, pxH) : null;
 
-  // only real size changes trigger animations
   const resizeChanges = useMemo(
     () => getResizeChanges(prevPlatesRef.current, plates),
     [plates]
   );
 
-  // recently added — play once per id
   useEffect(() => {
     if (!recentlyAdded) return;
     if (lastAddedRef.current === recentlyAdded) return;
@@ -216,7 +214,6 @@ export default function PlateCanvas({
     gapXs.push(PAD + cursorXForRects);
   }
 
-  // --- pre-scale values for overlay (so overlay is NOT inside CSS scale) ---
   const scale = previewScale;
   const stageWidthScaled = stageWidth * scale;
   const stageHeightScaled = stageHeight * scale;
@@ -235,7 +232,6 @@ export default function PlateCanvas({
       contentClassName="p-0"
       action={
         <div className="flex w-full items-center justify-between gap-3">
-          {/* left: zoom controls */}
           <div className="flex items-center gap-1">
             <AppButton
               variant="secondary"
@@ -261,14 +257,12 @@ export default function PlateCanvas({
             />
           </div>
 
-          {/* right: export */}
           <AppButton msgId="preview.export" onClick={exportPNG} />
         </div>
       }
     >
       <div className="w-full max-w-full h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96 overflow-x-auto overflow-y-hidden relative">
         <div className="min-w-min h-full flex items-center justify-center">
-          {/* Outer wrapper size reflects the scaled stage (for scrollbars) */}
           <div
             className="relative"
             style={{
@@ -329,7 +323,6 @@ export default function PlateCanvas({
               </CanvasStage>
             </div>
 
-            {/* Overlay OUTSIDE the scale; receive pre-scaled rects */}
             <div
               style={{
                 position: "absolute",
@@ -345,7 +338,6 @@ export default function PlateCanvas({
                 stageHeight={stageHeightScaled}
                 onReorder={(from, to) => onReorder?.(from, to)}
                 dragHandle="full"
-                // no 'scale' prop needed anymore
               />
             </div>
           </div>
