@@ -4,16 +4,19 @@ A React app to design a plate generator system for configuring and visualizing c
 
 Localization via **react-intl**, components via **shadcn/ui**, styling via **Tailwind CSS**.
 
-<p align="center" style="display: flex; justify-content: center; gap: 20px;">
-  <figure>
-    <img src="./docs/images/preview.png" alt="Desktop preview" height="320" />
-    <figcaption align="center"><b>Desktop View</b></figcaption>
-  </figure>
-  <figure>
-    <img src="./docs/images/mobile-preview.png" alt="Mobile preview" height="320" />
-    <figcaption align="center"><b>Mobile View</b></figcaption>
-  </figure>
-</p>
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="./docs/images/preview.png" alt="Desktop preview" height="320" /><br/>
+      <b>Desktop View</b>
+    </td>
+    <td align="center">
+      <img src="./docs/images/mobile-preview.png" alt="Mobile preview" height="320" /><br/>
+      <b>Mobile View</b>
+    </td>
+  </tr>
+</table>
+
 > Tip: The preview supports **horizontal scroll** for wide layouts and **mirrors** the image for layouts wider than 300 cm to keep a seamless look.
 
 ---
