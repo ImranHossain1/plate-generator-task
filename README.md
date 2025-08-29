@@ -6,9 +6,13 @@ Localization via **react-intl**, components via **shadcn/ui**, styling via **Tai
 
 <p align="center">
   <img src="./docs/images/preview.png" alt="Desktop preview" height="320" />
+  <span style="display:inline-block; width:10px;"></span>
   <img src="./docs/images/mobile-preview.png" alt="Mobile preview" height="320" />
 </p>
 
+<p align="center">
+  <b>Desktop View</b> &nbsp;&nbsp; | &nbsp;&nbsp; <b>Mobile View</b>
+</p>
 > Tip: The preview supports **horizontal scroll** for wide layouts and **mirrors** the image for layouts wider than 300 cm to keep a seamless look.
 
 ---
