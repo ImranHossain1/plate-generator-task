@@ -2,6 +2,7 @@
   "app.title": "Plate Generator",
   "nav.lang.en": "English",
   "nav.lang.de": "Deutsch",
+  "nav.lang.ariaLabel": "Toggle language",
 
   "preview.title": "Visual Preview",
   "preview.subtitle": "Plates scale; motif flows across.",
@@ -18,8 +19,10 @@
   "config.total": "Total width",
   "config.maxHeight": "Max height",
 
+  "units.toggle": "Toggle Units",
   "units.cm": "cm",
   "units.inch": "inch",
+  "units.mm": "mm",
 
   "plate.width": "Width",
   "plate.height": "Height",

@@ -2,6 +2,7 @@
   "app.title": "Rückwand-Generator",
   "nav.lang.en": "English",
   "nav.lang.de": "Deutsch",
+  "nav.lang.ariaLabel": "Sprache umschalten",
 
   "preview.title": "Visuelle Vorschau",
   "preview.subtitle": "Tellerwaage; Motiv fließt darüber hinweg.",
@@ -18,8 +19,10 @@
   "config.total": "Gesamtbreite",
   "config.maxHeight": "Maximale Höhe",
 
+  "units.toggle": "Einheiten umschalten",
   "units.cm": "cm",
-  "units.inch": "inch",
+  "units.inch": "zoll",
+  "units.mm": "mm",
 
   "plate.width": "Breite",
   "plate.height": "Höhe",

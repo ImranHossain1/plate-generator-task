@@ -4,26 +4,9 @@ import PlateField from "./PlateField";
 import { parseLocaleNumber } from "../../utils/number";
 import { Plate, PLATE_LIMITS } from "../../constants/plates";
 import { Badge } from "../ui/badge";
-import { Card, CardContent } from "../ui/Card";
 import AppButton from "../common/AppButton";
 import AppCard from "../common/AppCard";
-
-type IntlValues = Record<string, PrimitiveType>;
-type ErrorMsg = { id: string; values?: IntlValues } | null;
-type Unit = "cm" | "inch";
-
-type PlateRowProps = {
-  plate: Plate;
-  index: number;
-  isActive?: boolean;
-  onSelect?: () => void;
-  onChange: (patch: Partial<Pick<Plate, "w" | "h">>) => void;
-  onRemove: () => void;
-  canRemove: boolean;
-  unit: Unit;
-  recentlyAdded?: string | null;
-  recentlyRemoved?: string | null;
-};
+import { ErrorMsg, PlateRowProps } from "../../utils/types";
 
 export default function PlateRow({
   plate,
