@@ -1,9 +1,9 @@
 import { useIntl, FormattedMessage } from "react-intl";
-import MotifInput from "../plates/MotifInput";
+import MotifInput from "../previewLayout/plateComponents/MotifInput";
 import PlatesList from "./PlatesList";
-import PlatesActions from "../plates/PlatesActions";
 import AppToggle from "../common/AppToggle";
 import { ConfigCardProps, Unit } from "../../utils/types";
+import PlatesActions from "./PlatesActions";
 
 export default function ConfigCard({
   plates,

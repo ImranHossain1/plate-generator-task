@@ -12,7 +12,6 @@ type CanvasStageProps = {
 
 const CanvasStage = forwardRef<KonvaStage, CanvasStageProps>(
   ({ width, height, pad, children, listening = false }, ref) => {
-    // No background Rect => transparent canvas
     return (
       <Stage ref={ref} width={width} height={height} listening={listening}>
         <Layer listening={false}>

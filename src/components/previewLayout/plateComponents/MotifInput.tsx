@@ -1,7 +1,7 @@
 import { FormattedMessage } from "react-intl";
-import AppButton from "../common/AppButton";
-import { Input } from "../ui/input";
-import { MotifInputProps } from "../../utils/types";
+import AppButton from "../../common/AppButton";
+import { Input } from "../../ui/input";
+import { MotifInputProps } from "../../../utils/types";
 
 export default function MotifInput({ motifUrl, setCfg }: MotifInputProps) {
   return (
