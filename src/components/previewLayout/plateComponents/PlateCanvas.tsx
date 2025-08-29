@@ -43,14 +43,14 @@ export default function PlateCanvas({
   const [removedGhost, setRemovedGhost] = useState<RemovedGhost>(null);
   const intl = useIntl();
 
-  // --- Preview Zoom (visual only; math stays 1px = 1cm) ---
+  // Visual zoom (keeps math at 1cm = 1px)
   const [previewScale, setPreviewScale] = useState(1);
   const clamp = (v: number) => Math.min(3, Math.max(0.5, Number(v.toFixed(2))));
   const zoomOut = () => setPreviewScale((s) => clamp(s - 0.25));
   const zoomIn = () => setPreviewScale((s) => clamp(s + 0.25));
   const resetZoom = () => setPreviewScale(1);
 
-  // sizing
+  // sizing (unscaled)
   const { totalWidth, pxW, pxH, stageWidth, stageHeight } = useMemo(() => {
     const s = computeSizes(plates);
     return {
@@ -91,13 +91,13 @@ export default function PlateCanvas({
   const globalSrc: CoverRect | null =
     sourceImg && sW > 0 && sH > 0 ? getCoverSrcRect(sW, sH, pxW, pxH) : null;
 
-  // detect only *real* size changes (epsilon guard in helper)
+  // only real size changes trigger animations
   const resizeChanges = useMemo(
     () => getResizeChanges(prevPlatesRef.current, plates),
     [plates]
   );
 
-  // Animation: play "recently added" ONCE per id
+  // recently added — play once per id
   useEffect(() => {
     if (!recentlyAdded) return;
     if (lastAddedRef.current === recentlyAdded) return;
@@ -118,7 +118,7 @@ export default function PlateCanvas({
     }).play();
   }, [recentlyAdded]);
 
-  // Animation: subtle grow/shrink only when w/h actually changed
+  // grow/shrink tween
   useEffect(() => {
     if (!resizeChanges.length) return;
     for (const change of resizeChanges) {
@@ -184,7 +184,7 @@ export default function PlateCanvas({
     return () => clearTimeout(t);
   }, [recentlyRemoved, sourceImg]);
 
-  // ---- layout rects for overlay ----
+  // ---- layout rects (UNSCALED) ----
   const plateRects: Array<{
     id: string;
     left: number;
@@ -214,6 +214,19 @@ export default function PlateCanvas({
     cursorXForRects += w;
     gapXs.push(PAD + cursorXForRects);
   }
+
+  // --- pre-scale values for overlay (so overlay is NOT inside CSS scale) ---
+  const scale = previewScale;
+  const stageWidthScaled = stageWidth * scale;
+  const stageHeightScaled = stageHeight * scale;
+  const plateRectsScaled = plateRects.map((r) => ({
+    id: r.id,
+    left: r.left * scale,
+    top: r.top * scale,
+    width: r.width * scale,
+    height: r.height * scale,
+  }));
+  const gapXsScaled = gapXs.map((x) => x * scale);
 
   return (
     <AppCard
@@ -248,19 +261,20 @@ export default function PlateCanvas({
     >
       <div className="w-full max-w-full h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96 overflow-x-auto overflow-y-hidden relative">
         <div className="min-w-min h-full flex items-center justify-center">
+          {/* Outer wrapper size reflects the scaled stage (for scrollbars) */}
           <div
             className="relative"
             style={{
-              width: stageWidth * previewScale,
-              height: stageHeight * previewScale,
+              width: stageWidthScaled,
+              height: stageHeightScaled,
             }}
           >
+            {/* Only the Konva canvas is scaled */}
             <div
-              className="relative"
               style={{
-                width: stageWidth,
-                height: stageHeight,
-                transform: `scale(${previewScale})`,
+                position: "absolute",
+                inset: 0,
+                transform: `scale(${scale})`,
                 transformOrigin: "top left",
               }}
             >
@@ -304,27 +318,28 @@ export default function PlateCanvas({
                     />
                   );
                 })}
-
                 <RemovedGhostCmp ghost={removedGhost} sourceImg={sourceImg} />
               </CanvasStage>
+            </div>
 
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  pointerEvents: "none",
-                  zIndex: 10,
-                }}
-              >
-                <ReorderLayer
-                  plateRects={plateRects}
-                  gapXs={gapXs}
-                  stageWidth={stageWidth}
-                  stageHeight={stageHeight}
-                  onReorder={(from, to) => onReorder?.(from, to)}
-                  dragHandle="full"
-                />
-              </div>
+            {/* Overlay OUTSIDE the scale; receive pre-scaled rects */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+                zIndex: 10,
+              }}
+            >
+              <ReorderLayer
+                plateRects={plateRectsScaled}
+                gapXs={gapXsScaled}
+                stageWidth={stageWidthScaled}
+                stageHeight={stageHeightScaled}
+                onReorder={(from, to) => onReorder?.(from, to)}
+                dragHandle="full"
+                // no 'scale' prop needed anymore
+              />
             </div>
           </div>
         </div>

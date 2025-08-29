@@ -137,6 +137,7 @@ export type ReorderLayerProps = {
   stageHeight: number;
   dragHandle?: "full" | "edge";
   onReorder?: OnReorder;
+  scale?: number;
 };
 
 export type ConfigCardProps = {

@@ -30,12 +30,7 @@ export default function ReorderLayer({
   const handleDragStart = (_e: DragStartEvent) => setIsDragging(true);
   const handleDragCancel = (_e: DragCancelEvent) => setIsDragging(false);
 
-  // Gap semantics:
-  //   gap k (0..n) means "insert BEFORE item k"
-  //   (gap n == after the last item).
-  // After removing the dragged item, indices >= fromIndex shift left by 1.
-  // So, if you drop at a gap to the RIGHT of the original position,
-  // the final insertion index is (gapIndex - 1); otherwise it's gapIndex.
+  // gap k means "insert BEFORE item k". After removal, indices shift.
   const computeInsertIndex = (gapIndex: number, fromIndex: number) =>
     gapIndex - (fromIndex < gapIndex ? 1 : 0);
 
@@ -48,13 +43,11 @@ export default function ReorderLayer({
     if (!overId.startsWith("gap-")) return;
 
     const fromIndex = plateRects.findIndex((r) => r.id === fromId);
-    const gapIndex = Number(overId.slice(4)); // "gap-<k>"
+    const gapIndex = Number(overId.slice(4));
     if (fromIndex < 0 || Number.isNaN(gapIndex)) return;
 
     const insertAt = computeInsertIndex(gapIndex, fromIndex);
-
-    // No-op cases: dropping "before self" or "immediately after self"
-    if (insertAt === fromIndex) return;
+    if (insertAt === fromIndex) return; // same/immediately-after → no-op
 
     onReorder(fromIndex, insertAt);
   };
