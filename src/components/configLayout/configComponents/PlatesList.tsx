@@ -9,6 +9,7 @@ export default function PlatesList({
   updatePlate,
   removePlate,
   unit,
+  dismissErrorsKey,
 }: PlatesListProps) {
   return (
     <div className="mt-3 space-y-5">
@@ -34,6 +35,7 @@ export default function PlatesList({
               onRemove={() => removePlate(p.id)}
               canRemove={plates.length > 1}
               unit={unit}
+              dismissErrorsKey={dismissErrorsKey}
             />
           </div>
         </Transition>

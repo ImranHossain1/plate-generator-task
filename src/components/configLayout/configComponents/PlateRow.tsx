@@ -17,6 +17,7 @@ export default function PlateRow({
   onRemove,
   canRemove,
   unit,
+  dismissErrorsKey,
 }: PlateRowProps) {
   const intl = useIntl();
 
@@ -30,6 +31,7 @@ export default function PlateRow({
   const [wError, setWError] = useState<ErrorMsg>(null);
   const [hError, setHError] = useState<ErrorMsg>(null);
 
+  // keep existing syncing
   useEffect(() => {
     const val =
       unit === "cm" ? plate.w : Math.round((plate.w / 2.54) * 100) / 100;
@@ -46,6 +48,21 @@ export default function PlateRow({
     setWError(null);
     setHError(null);
   }, [unit, plate.w, plate.h]);
+
+  const clearErrorsAndResync = () => {
+    setWError(null);
+    setHError(null);
+    setWDraft(String(cmToUnit(plate.w)));
+    setHDraft(String(cmToUnit(plate.h)));
+  };
+
+  useEffect(() => {
+    if (!isActive) clearErrorsAndResync();
+  }, [isActive]);
+
+  useEffect(() => {
+    if (dismissErrorsKey !== undefined) clearErrorsAndResync();
+  }, [dismissErrorsKey]);
 
   const fmt2 = (n: number) =>
     intl.formatNumber(n, {
@@ -178,7 +195,7 @@ export default function PlateRow({
             min={PLATE_LIMITS.MIN_W}
             max={PLATE_LIMITS.MAX_W}
             draft={wDraft}
-            error={wErrorText}
+            error={isActive ? wErrorText : ""}
             onChange={(e) => setWDraft(e.target.value)}
             onBlur={handleBlurW}
             isActive={isActive}
@@ -196,7 +213,7 @@ export default function PlateRow({
             min={PLATE_LIMITS.MIN_H}
             max={PLATE_LIMITS.MAX_H}
             draft={hDraft}
-            error={hErrorText}
+            error={isActive ? hErrorText : ""}
             onChange={(e) => setHDraft(e.target.value)}
             onBlur={handleBlurH}
             isActive={isActive}

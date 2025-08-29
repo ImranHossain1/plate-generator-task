@@ -117,6 +117,7 @@ export type PlatesListProps = {
   updatePlate: (id: string, patch: Partial<Pick<Plate, "w" | "h">>) => void;
   removePlate: (id: string) => void;
   unit: Unit;
+  dismissErrorsKey?: number;
 };
 
 export type PreviewCardProps = {
@@ -155,6 +156,7 @@ export type ConfigCardProps = {
   resetToDefaults: () => void;
   unit: Unit;
   setUnit: (u: Unit) => void;
+  dismissErrorsKey?: number;
 };
 
 export type MotifInputProps = {
@@ -178,6 +180,7 @@ export type PlateRowProps = {
   unit: Unit;
   recentlyAdded?: string | null;
   recentlyRemoved?: string | null;
+  dismissErrorsKey?: number;
 };
 
 /* ────────────────────────────────────────────────────────────────────────────

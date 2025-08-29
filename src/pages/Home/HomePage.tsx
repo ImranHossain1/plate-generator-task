@@ -29,6 +29,8 @@ export default function HomePage() {
   );
   const [unit, setUnit] = useState<Unit>("cm");
 
+  const [dismissErrorsKey, setDismissErrorsKey] = useState(0);
+
   useEffect(() => {
     if (!recentlyAdded) return;
     const t = setTimeout(() => setRecentlyAdded(null), ANIM_S * 1000);
@@ -53,10 +55,15 @@ export default function HomePage() {
   const updatePlate = (id: string, patch: Partial<Pick<Plate, "w" | "h">>) =>
     setCfg((s) => updatePlateHelper(s, id, patch));
 
-  const addPlate = (afterId?: string) =>
+  const addPlate = (afterId?: string) => {
     setCfg((s) => addPlateHelper(s, afterId, setRecentlyAdded));
+    setDismissErrorsKey((k) => k + 1);
+  };
 
-  const removePlate = (id: string) => removePlateHelper(cfg, id, setCfg);
+  const removePlate = (id: string) => {
+    removePlateHelper(cfg, id, setCfg);
+    setDismissErrorsKey((k) => k + 1);
+  };
 
   const exportCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const handleCanvasRef = (c: HTMLCanvasElement | null) => {
@@ -64,7 +71,10 @@ export default function HomePage() {
   };
   const exportPNG = () => exportPNGHelper(exportCanvasRef.current);
 
-  const resetToDefaults = () => setCfg(resetConfigHelper());
+  const resetToDefaults = () => {
+    setCfg(resetConfigHelper());
+    setDismissErrorsKey((k) => k + 1);
+  };
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -98,6 +108,7 @@ export default function HomePage() {
             resetToDefaults={resetToDefaults}
             unit={unit}
             setUnit={setUnit}
+            dismissErrorsKey={dismissErrorsKey}
           />
         </div>
       </div>

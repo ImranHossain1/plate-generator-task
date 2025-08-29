@@ -20,6 +20,7 @@ export default function ConfigCard({
   resetToDefaults,
   unit,
   setUnit,
+  dismissErrorsKey,
 }: ConfigCardProps) {
   const intl = useIntl();
 
@@ -51,6 +52,7 @@ export default function ConfigCard({
         updatePlate={updatePlate}
         removePlate={removePlate}
         unit={unit}
+        dismissErrorsKey={dismissErrorsKey}
       />
 
       <PlatesActions
