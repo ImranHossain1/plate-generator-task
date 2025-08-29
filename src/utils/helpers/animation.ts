@@ -2,24 +2,49 @@
 import { CoverRect, GAP, Plate, RemovedGhost, ResizeChange } from "../types";
 
 /** Detect plates that grew/shrank to trigger subtle scale tweens.
- *  Only compares w/h and ignores tiny float noise via epsilon.
+ * Uses area change (w*h) to decide direction. Ignores tiny noise via eps.
  */
 export function getResizeChanges(
   prev: Plate[],
   next: Plate[],
-  eps = 1e-6
+  epsDim = 1e-6, // dimension noise tolerance
+  epsAreaRel = 1e-6 // relative area noise tolerance
 ): ResizeChange[] {
-  const byId = new Map(prev.map((p) => [p.id, p]));
+  const beforeById = new Map(prev.map((p) => [p.id, p]));
   const changes: ResizeChange[] = [];
-  for (const n of next) {
-    const p = byId.get(n.id);
-    if (!p) continue; // creations handled by 'recentlyAdded'
-    const dw = Number(n.w) - Number(p.w);
-    const dh = Number(n.h) - Number(p.h);
-    if (Math.abs(dw) > eps || Math.abs(dh) > eps) {
-      changes.push({ id: n.id, type: dw + dh >= 0 ? "grow" : "shrink" });
+
+  for (const cur of next) {
+    const before = beforeById.get(cur.id);
+    if (!before) continue;
+
+    const dw = Number(cur.w) - Number(before.w);
+    const dh = Number(cur.h) - Number(before.h);
+
+    if (Math.abs(dw) <= epsDim && Math.abs(dh) <= epsDim) continue;
+
+    const areaBefore = Number(before.w) * Number(before.h);
+    const areaAfter = Number(cur.w) * Number(cur.h);
+
+    const denom = Math.max(areaBefore, 1);
+    const relDelta = (areaAfter - areaBefore) / denom;
+
+    let type: ResizeChange["type"];
+    if (Math.abs(relDelta) > epsAreaRel) {
+      type = relDelta > 0 ? "grow" : "shrink";
+    } else {
+      type =
+        Math.abs(dw) >= Math.abs(dh)
+          ? dw >= 0
+            ? "grow"
+            : "shrink"
+          : dh >= 0
+          ? "grow"
+          : "shrink";
     }
+
+    changes.push({ id: cur.id, type });
   }
+
   return changes;
 }
 

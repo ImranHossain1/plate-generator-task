@@ -1,4 +1,3 @@
-// Cropping helpers
 import { CoverRect, CropRect } from "../types";
 
 /** Build the crop rect for a single plate within the global cover crop. */
@@ -11,10 +10,13 @@ export function buildPlateCrop(
   drawW: number,
   drawH: number
 ): CropRect {
+  const sx = globalSrc.w / pxW;
+  const sy = globalSrc.h / pxH;
+
   return {
-    x: globalSrc.x + (globalSrc.w * cursorX) / pxW,
-    y: globalSrc.y + (globalSrc.h * (pxH - plateH)) / pxH,
-    width: (globalSrc.w * drawW) / pxW,
-    height: (globalSrc.h * drawH) / pxH,
+    x: globalSrc.x + cursorX * sx,
+    y: globalSrc.y + (pxH - plateH) * sy,
+    width: drawW * sx,
+    height: drawH * sy,
   };
 }
