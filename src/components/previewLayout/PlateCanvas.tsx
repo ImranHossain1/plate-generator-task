@@ -5,8 +5,7 @@ import AppCard from "../common/AppCard";
 import CanvasStage from "./plateComponents/CanvasStage";
 import PlateBlock from "./plateComponents/PlateBlock";
 import RemovedGhostCmp from "./plateComponents/RemovedGhost";
-import { Plate } from "../../constants/plates";
-import { useIntl, FormattedMessage } from "react-intl";
+import { useIntl } from "react-intl";
 import {
   computeSizes,
   getCoverSrcRect,
@@ -21,6 +20,7 @@ import {
   ANIM_S,
   PAD,
   GAP,
+  Plate,
 } from "../../utils/types";
 import AppButton from "../common/AppButton";
 

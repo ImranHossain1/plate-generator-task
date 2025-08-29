@@ -4,7 +4,6 @@ import { PlatesListProps } from "../../utils/types";
 
 export default function PlatesList({
   plates,
-  recentlyAdded = null,
   activeId,
   setActiveId,
   updatePlate,

@@ -1,3 +1,5 @@
+import { PlateConfig } from "../utils/types";
+
 export const PLATE_LIMITS = {
   MIN_W: 20,
   MAX_W: 300,
@@ -5,17 +7,6 @@ export const PLATE_LIMITS = {
   MAX_H: 128,
   MAX_PLATES: 10,
 } as const;
-
-export type Plate = {
-  id: string;
-  w: number;
-  h: number;
-};
-
-export type PlateConfig = {
-  motifUrl: string;
-  plates: Plate[];
-};
 
 export const DEFAULT_PLATE_CONFIG: PlateConfig = {
   motifUrl:

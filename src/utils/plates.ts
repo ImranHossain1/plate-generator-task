@@ -1,10 +1,6 @@
 import type React from "react";
-import {
-  DEFAULT_PLATE_CONFIG,
-  Plate,
-  PLATE_LIMITS,
-  PlateConfig,
-} from "../constants/plates";
+import { DEFAULT_PLATE_CONFIG, PLATE_LIMITS } from "../constants/plates";
+import { Plate, PlateConfig } from "./types";
 
 /** Optional UI status on a plate (for animations, etc.) */
 export type PlateWithStatus = Plate & { status?: "active" | "removing" };
