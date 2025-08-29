@@ -2,12 +2,13 @@ import { ComponentProps } from "react";
 import { Card } from "../components/ui/Card";
 import { Plate, PlateConfig } from "../constants/plates";
 import type { Stage as KonvaStage } from "konva/lib/Stage";
-import { Button } from "../components/ui/Button";
+import { PrimitiveType } from "react-intl";
 
-/* ─── DOMAIN / DATA TYPES ── */
-
+/* ─── DOMAIN / DATA TYPES ────────────────────────────── */
 export type Unit = "cm" | "inch";
+
 export type PlateWithStatus = Plate & { status?: "active" | "removing" };
+
 export type CoverRect = { x: number; y: number; w: number; h: number };
 export type CropRect = { x: number; y: number; width: number; height: number };
 
@@ -22,9 +23,9 @@ export type RemovedGhost = {
 
 export type ResizeChange = { id: string; type: "grow" | "shrink" };
 
-/* ─── REACT COMPONENT PROPS TYPES ───── */
+/* ─── REACT COMPONENT PROP TYPES ─────────────────────── */
 export type CardDomProps = Omit<
-  React.ComponentProps<typeof Card>,
+  ComponentProps<typeof Card>,
   "children" | "className"
 >;
 
@@ -105,12 +106,28 @@ export type RemovedGhostProps = {
   sourceImg: CanvasImageSource | null;
 };
 
-/* ─── CONSTANTS (UI / LAYOUT CONFIG) ─── */
+export type PlateRowProps = {
+  plate: Plate;
+  index: number;
+  isActive?: boolean;
+  onSelect?: () => void;
+  onChange: (patch: Partial<Pick<Plate, "w" | "h">>) => void;
+  onRemove: () => void;
+  canRemove: boolean;
+  unit: Unit;
+  recentlyAdded?: string | null;
+  recentlyRemoved?: string | null;
+};
+
+/* ─── CONSTANTS (UI / LAYOUT CONFIG) ─────────────────── */
 export const PAD = 24;
 export const GAP = 4;
 export const ANIM_S = 0.5;
 export const MAX_STAGE_WIDTH = 12000;
 
-/* ─── INTERNATIONALIZATION / LOCALE ──── */
+/* ─── INTERNATIONALIZATION / LOCALE ──────────────────── */
 export type Locale = "en" | "de";
 export type Messages = Record<string, string>;
+
+export type IntlValues = Record<string, PrimitiveType>;
+export type ErrorMsg = { id: string; values?: IntlValues } | null;

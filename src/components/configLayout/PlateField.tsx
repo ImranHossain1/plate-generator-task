@@ -2,6 +2,7 @@ import { parseLocaleNumber } from "../../utils/number";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "../ui/input";
 import { PlateFieldProps } from "../../utils/types";
+import { useIntl } from "react-intl";
 
 export default function PlateField({
   label,
@@ -14,6 +15,8 @@ export default function PlateField({
   isActive = false,
   unit,
 }: PlateFieldProps) {
+  const intl = useIntl();
+
   const cmToMmLabel = (val: string) => {
     const num = parseLocaleNumber(val);
     if (Number.isNaN(num)) return null;
@@ -35,8 +38,10 @@ export default function PlateField({
           </Label>
           <span className="text-[10px] text-muted-foreground">
             {unit === "cm"
-              ? `${min} – ${max} cm`
-              : `${toInch2(min)} – ${toInch2(max)} inch`}
+              ? `${min} – ${max} ${intl.formatMessage({ id: "units.cm" })}`
+              : `${toInch2(min)} – ${toInch2(max)} ${intl.formatMessage({
+                  id: "units.inch",
+                })}`}
           </span>
         </div>
       )}
@@ -58,7 +63,7 @@ export default function PlateField({
           className="pointer-events-none absolute inset-y-0 right-0 grid place-items-center
                      rounded-r-lg border-l bg-muted px-3 text-xs text-muted-foreground"
         >
-          {unit}
+          {intl.formatMessage({ id: `units.${unit}` })}
         </span>
       </div>
 
@@ -71,7 +76,7 @@ export default function PlateField({
           isActive &&
           mm && (
             <p className="text-center text-[10px] text-muted-foreground">
-              {mm} mm
+              {mm} {intl.formatMessage({ id: "units.mm" })}
             </p>
           )
         )}
