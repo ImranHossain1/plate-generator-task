@@ -40,9 +40,10 @@ export default function PlateCanvas({
   const nodeMapRef = useRef<Record<string, Konva.Group | null>>({});
   const prevPlatesRef = useRef<Plate[]>([]);
   const lastAddedRef = useRef<string | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [fitScale, setFitScale] = useState(1);
 
   const [removedGhost, setRemovedGhost] = useState<RemovedGhost>(null);
-  const intl = useIntl();
 
   // Visual zoom (keeps math at 1cm = 1px)
   const [previewScale, setPreviewScale] = useState(1);
@@ -76,6 +77,16 @@ export default function PlateCanvas({
   }, [img, totalWidth]);
 
   useEffect(() => onStageRef?.(stageRef.current), [onStageRef]);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const containerWidth = containerRef.current.offsetWidth;
+    if (stageWidth > 0 && containerWidth > 0) {
+      const scaleToFit = containerWidth / stageWidth;
+      setFitScale(scaleToFit);
+    }
+  }, [stageWidth]);
+
   useEffect(() => {
     if (!onCanvasRef) return;
     const stage = stageRef.current;
@@ -177,47 +188,69 @@ export default function PlateCanvas({
     return () => clearTimeout(t);
   }, [recentlyRemoved, sourceImg]);
 
-  const plateRects: Array<{
-    id: string;
-    left: number;
-    top: number;
-    width: number;
-    height: number;
-  }> = [];
-  const gapXs: number[] = [];
+  // Compute plate rectangles, their scaled versions, and stage dimensions
+  const {
+    plateRects,
+    plateRectsScaled,
+    gapXsScaled,
+    stageWidthScaled,
+    stageHeightScaled,
+    scale,
+  } = useMemo(() => {
+    // Base rect positions (unscaled)
+    const rects: {
+      id: string;
+      left: number;
+      top: number;
+      width: number;
+      height: number;
+    }[] = [];
+    // Gap markers (used for drag & drop reordering)
+    const gaps: number[] = [];
+    let cursorXForRects = 0;
+    gaps.push(PAD);
+    for (const p of plates) {
+      const w = Number(p.w) || 0;
+      const h = Number(p.h) || 0;
+      const drawW = Math.max(0, w - GAP);
+      const x = cursorXForRects;
+      const y = pxH - h;
 
-  let cursorXForRects = 0;
-  gapXs.push(PAD + 0);
-  for (const p of plates) {
-    const w = Number(p.w) || 0;
-    const h = Number(p.h) || 0;
-    const drawW = Math.max(0, w - GAP);
-    const x = cursorXForRects;
-    const y = pxH - h;
+      rects.push({
+        id: p.id,
+        left: PAD + x,
+        top: PAD + y,
+        width: drawW,
+        height: h,
+      });
 
-    plateRects.push({
-      id: p.id,
-      left: PAD + x,
-      top: PAD + y,
-      width: drawW,
-      height: h,
-    });
+      cursorXForRects += w;
+      gaps.push(PAD + cursorXForRects);
+    }
 
-    cursorXForRects += w;
-    gapXs.push(PAD + cursorXForRects);
-  }
+    // --- Scaling ---
+    const scale = fitScale * previewScale;
+    const stageWidthScaled = stageWidth * scale;
+    const stageHeightScaled = stageHeight * scale;
+    const rectsScaled = rects.map((r) => ({
+      id: r.id,
+      left: r.left * scale,
+      top: r.top * scale,
+      width: r.width * scale,
+      height: r.height * scale,
+    }));
+    const gapsScaled = gaps.map((x) => x * scale);
 
-  const scale = previewScale;
-  const stageWidthScaled = stageWidth * scale;
-  const stageHeightScaled = stageHeight * scale;
-  const plateRectsScaled = plateRects.map((r) => ({
-    id: r.id,
-    left: r.left * scale,
-    top: r.top * scale,
-    width: r.width * scale,
-    height: r.height * scale,
-  }));
-  const gapXsScaled = gapXs.map((x) => x * scale);
+    return {
+      plateRects: rects,
+      gapXs: gaps,
+      plateRectsScaled: rectsScaled,
+      gapXsScaled: gapsScaled,
+      stageWidthScaled,
+      stageHeightScaled,
+      scale,
+    };
+  }, [plates, pxH, stageWidth, stageHeight, fitScale, previewScale]);
 
   return (
     <AppCard
@@ -254,7 +287,10 @@ export default function PlateCanvas({
         </div>
       }
     >
-      <div className="w-full max-w-full h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96 overflow-x-auto overflow-y-hidden relative">
+      <div
+        ref={containerRef}
+        className="w-full max-w-full h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96 overflow-hidden relative"
+      >
         <div className="min-w-min h-full flex items-center justify-center">
           <div
             className="relative"
