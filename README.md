@@ -7,7 +7,7 @@ Localization via **react-intl**, components via **shadcn/ui**, styling via **Tai
 <table align="center">
   <tr>
     <td align="center">
-      <img src="./docs/images/preview.png" alt="Desktop preview" height="320" /><br/>
+      <img src="./docs/images/desktop-view.png" alt="Desktop preview" height="320" /><br/>
       <b>Desktop View</b>
     </td>
     <td align="center">
