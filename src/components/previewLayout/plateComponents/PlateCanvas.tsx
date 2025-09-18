@@ -5,7 +5,6 @@ import AppCard from "../../common/AppCard";
 import CanvasStage from "./Konva/CanvasStage";
 import PlateBlock from "./Konva/PlateBlock";
 import RemovedGhostCmp from "./Konva/RemovedGhost";
-import { useIntl } from "react-intl";
 import { Minus, Plus } from "lucide-react";
 import {
   computeSizes,
@@ -52,6 +51,7 @@ export default function PlateCanvas({
   const zoomIn = () => setPreviewScale((s) => clamp(s + 0.25));
   const resetZoom = () => setPreviewScale(1);
 
+  // Memoize computed stage and canvas sizes based on plates
   const { totalWidth, pxW, pxH, stageWidth, stageHeight } = useMemo(() => {
     const s = computeSizes(plates);
     return {
@@ -63,6 +63,7 @@ export default function PlateCanvas({
     };
   }, [plates]);
 
+  // Memoize source image (mirror if needed for wide setups)
   const { sourceImg, sW, sH } = useMemo(() => {
     const ready = !!img && img.width > 0 && img.height > 0;
     const needsMirror = totalWidth > 300 && ready;
@@ -76,8 +77,10 @@ export default function PlateCanvas({
     return makeMirroredStripe(img);
   }, [img, totalWidth]);
 
+  // Expose Konva stage reference upward
   useEffect(() => onStageRef?.(stageRef.current), [onStageRef]);
 
+  // Compute fit-to-container scale on initial render and resize
   useEffect(() => {
     if (!containerRef.current) return;
     const containerWidth = containerRef.current.offsetWidth;
@@ -87,6 +90,7 @@ export default function PlateCanvas({
     }
   }, [stageWidth]);
 
+  // Provide raw <canvas> element ref upward for external usage
   useEffect(() => {
     if (!onCanvasRef) return;
     const stage = stageRef.current;
@@ -100,11 +104,13 @@ export default function PlateCanvas({
   const globalSrc: CoverRect | null =
     sourceImg && sW > 0 && sH > 0 ? getCoverSrcRect(sW, sH, pxW, pxH) : null;
 
+  // Detect differences in plate dimensions to animate resize
   const resizeChanges = useMemo(
     () => getResizeChanges(prevPlatesRef.current, plates),
     [plates]
   );
 
+  // Animate plates when newly added
   useEffect(() => {
     if (!recentlyAdded) return;
     if (lastAddedRef.current === recentlyAdded) return;
@@ -125,6 +131,7 @@ export default function PlateCanvas({
     }).play();
   }, [recentlyAdded]);
 
+  // Animate plates when resized
   useEffect(() => {
     if (!resizeChanges.length) return;
     for (const change of resizeChanges) {
@@ -156,6 +163,7 @@ export default function PlateCanvas({
     globalSrc,
   });
 
+  // Track previous plates + snapshot for removed ghost calculation
   useEffect(() => {
     lastSnapshotRef.current = {
       prevPlates: prevPlatesRef.current,
@@ -166,6 +174,7 @@ export default function PlateCanvas({
     prevPlatesRef.current = plates.map((p) => ({ ...p }));
   }, [plates, pxW, pxH, globalSrc]);
 
+  // Animate ghost for recently removed plates
   useEffect(() => {
     if (!recentlyRemoved) return;
     const {
@@ -188,7 +197,23 @@ export default function PlateCanvas({
     return () => clearTimeout(t);
   }, [recentlyRemoved, sourceImg]);
 
-  // Compute plate rectangles, their scaled versions, and stage dimensions
+  /*  
+  Previously, this computation for plateRects and gapXs was written inline without useMemo.  
+  That meant every single render (even if unrelated props/state changed) we would recompute  
+  all rects and gaps by iterating over the plates array. The algorithm itself is O(n)  
+  — where n is the number of plates — since we loop once to build rects and gap markers.  
+
+  By wrapping this in useMemo, React will only re-run the computation when its dependencies  
+  (plates, pxH, stageWidth, stageHeight, fitScale, previewScale) actually change.  
+  This avoids unnecessary recalculations on every re-render and prevents wasteful  
+  object allocations (new arrays for rects/gaps/rectsScaled).  
+
+  The result: the time complexity of the loop is still O(n), but it now executes only  
+  when required, making the code more efficient and reducing CPU work during renders.  
+  This is especially beneficial when there are many plates or frequent state updates.  
+*/
+
+  // Compute plate rectangles, scaled positions, gaps, and stage size for rendering & reordering
   const {
     plateRects,
     plateRectsScaled,
@@ -229,6 +254,18 @@ export default function PlateCanvas({
     }
 
     // --- Scaling ---
+    /*
+    After computing base positions, we apply scaling:
+    - scale = fitScale (auto fit-to-container) × previewScale (user zoom).
+    - stageWidth/HeightScaled = how large the canvas actually renders at this scale.
+    - rectsScaled = each plate’s coordinates and size adjusted by scale,
+        so the visual layout matches zoom/fit.
+    - gapsScaled = scale the gap markers too, ensuring drag & drop targets
+        stay aligned with the scaled layout.
+
+    Without these multiplications, zooming or fitting wouldn’t affect
+    the actual rendered positions, leading to misaligned visuals.
+    */
     const scale = fitScale * previewScale;
     const stageWidthScaled = stageWidth * scale;
     const stageHeightScaled = stageHeight * scale;
