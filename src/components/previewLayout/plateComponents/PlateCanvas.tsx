@@ -326,7 +326,7 @@ export default function PlateCanvas({
     >
       <div
         ref={containerRef}
-        className="w-full max-w-full h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96 overflow-hidden relative"
+        className="w-full max-w-full h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96 overflow-x-auto overflow-y-hidden relative"
       >
         <div className="min-w-min h-full flex items-center justify-center">
           <div
