@@ -41,7 +41,7 @@ export default function PlateCanvas({
   const lastAddedRef = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [fitScale, setFitScale] = useState(1);
-
+  const [canScroll, setCanScroll] = useState(false);
   const [removedGhost, setRemovedGhost] = useState<RemovedGhost>(null);
 
   // Visual zoom (keeps math at 1cm = 1px)
@@ -289,6 +289,17 @@ export default function PlateCanvas({
     };
   }, [plates, pxH, stageWidth, stageHeight, fitScale, previewScale]);
 
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const checkScroll = () => {
+      const containerWidth = containerRef.current?.offsetWidth ?? 0;
+      setCanScroll(stageWidthScaled > containerWidth);
+    };
+    checkScroll();
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, [stageWidthScaled]);
+
   return (
     <AppCard
       className="min-w-0 bg-gray-100"
@@ -326,12 +337,9 @@ export default function PlateCanvas({
     >
       <div
         ref={containerRef}
-        className={`w-full max-w-full h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96 overflow-y-hidden relative`}
+        className="w-full max-w-full h-56 sm:h-64 md:h-72 lg:h-80 xl:h-96 overflow-y-hidden relative"
         style={{
-          overflowX:
-            stageWidthScaled > (containerRef.current?.offsetWidth ?? 0)
-              ? "auto"
-              : "hidden",
+          overflowX: canScroll ? "auto" : "hidden",
         }}
       >
         <div className="min-w-min h-full flex items-center justify-center">
